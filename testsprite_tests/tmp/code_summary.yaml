@@ -1,0 +1,63 @@
+version: "2"
+type: frontend
+tech_stack:
+  - typescript
+  - next.js
+  - react
+  - tailwindcss
+  - supabase
+  - lucide-react
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: false
+    description: Initial entry or login page
+  - path: /start
+    file: src/app/(user)/start/page.tsx
+    auth_required: true
+    description: User main dashboard / start page
+  - path: /ctrl-sm-2026/bundles
+    file: src/app/ctrl-sm-2026/bundles/page.tsx
+    auth_required: true
+    description: Admin Bundles Management page
+  - path: /ctrl-sm-2026/users
+    file: src/app/ctrl-sm-2026/users/page.tsx
+    auth_required: true
+    description: Admin Users Management page
+  - path: /ctrl-sm-2026/tasks
+    file: src/app/ctrl-sm-2026/tasks/page.tsx
+    auth_required: true
+    description: Admin Tasks Management page
+features:
+  - name: Admin Bundles Management
+    description: Manage bundle packages, allocate bundles to users, and filter products by VIP level.
+    files:
+      - src/app/ctrl-sm-2026/bundles/page.tsx
+    entry_route: /ctrl-sm-2026/bundles
+    user_interactions:
+      - Select a user from the dropdown list
+      - Filter products by VIP level
+      - Add bundle price and commission value
+      - Click 'Deploy Bundle to Task' button
+    api_calls:
+      - method: GET
+        endpoint: supabase/bundle_packages
+      - method: GET
+        endpoint: supabase/profiles
+  - name: Admin Task Product Management
+    description: Manage product catalog for tasks with varying VIP levels and premium images.
+    files:
+      - src/app/ctrl-sm-2026/tasks/page.tsx
+    entry_route: /ctrl-sm-2026/tasks
+    user_interactions:
+      - View list of products
+      - Add new product with image URL
+      - Edit existing product details
+      - Delete a product map
+    api_calls:
+      - method: GET
+        endpoint: supabase/task_items
+      - method: POST
+        endpoint: supabase/task_items
+auth_required: true
+known_limitations: []
