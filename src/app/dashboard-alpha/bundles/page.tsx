@@ -195,22 +195,40 @@ export default function AdminBundlesPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: selectedUserId, bundle: bundlePayload }),
             });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                setAssignMsg({ type: 'error', text: `Server error (${res.status}): ${errorText.substring(0, 50)}` });
+                return;
+            }
+
             const result = await res.json();
             if (result.error) setAssignMsg({ type: 'error', text: result.error });
             else {
                 setAssignMsg({ type: 'success', text: `Bundle success for ${selectedUser?.username}!` });
                 fetchUsers();
             }
+        } catch (err) {
+            console.error("Bundle Assign Error:", err);
+            setAssignMsg({ type: 'error', text: `Fetch failed: ${err instanceof Error ? err.message : 'Is your server running?'}` });
         } finally { setAssigning(false); }
     };
 
     const handleClearBundle = async (userId: string) => {
-        await fetch('/api/admin/assign-bundle', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId }),
-        });
-        fetchUsers();
+        try {
+            const res = await fetch('/api/admin/assign-bundle', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId }),
+            });
+            if (res.ok) fetchUsers();
+            else {
+                const txt = await res.text();
+                console.error("Clear bundle error:", txt);
+            }
+        } catch (err) {
+            console.error("Clear bundle fetch fail:", err);
+        }
     };
 
     const bonusPercent = (topUp: number, bonus: number) =>

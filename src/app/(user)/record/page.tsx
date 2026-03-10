@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,37 +8,78 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import type { UserTask, TaskItem } from '@/lib/types';
-import { Clock, CheckCircle, XCircle, Search, Filter, ChevronRight } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Search, Filter, ChevronRight, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function RecordPage() {
-    const { profile } = useAuth();
+    const { profile, refreshProfile } = useAuth();
     const { t, language } = useLanguage();
     const { format } = useCurrency();
     const [tasks, setTasks] = useState<(UserTask & { task_item: TaskItem })[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [profitAdded, setProfitAdded] = useState<number | null>(null);
+    const [showBundleSuccessToast, setShowBundleSuccessToast] = useState(false);
+    const [submittingTaskId, setSubmittingTaskId] = useState<number | null>(null);
+
+    const fetchTasks = async () => {
+        if (!profile) return;
+        const { data } = await supabase
+            .from('user_tasks')
+            .select('*, task_item:task_items(*)')
+            .eq('user_id', profile.id)
+            .order('created_at', { ascending: false });
+
+        if (data) {
+            setTasks(data as (UserTask & { task_item: TaskItem })[]);
+        }
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchTasks = async () => {
-            if (!profile) return;
-            const { data } = await supabase
-                .from('user_tasks')
-                .select('*, task_item:task_items(*)')
-                .eq('user_id', profile.id)
-                .order('created_at', { ascending: false });
-
-            if (data) {
-                setTasks(data as (UserTask & { task_item: TaskItem })[]);
-            }
-            setLoading(false);
-        };
         fetchTasks();
     }, [profile]);
 
+    const handleSubmitPending = async (taskItemId: number) => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setSubmittingTaskId(taskItemId);
+        
+        try {
+            const { data, error } = await supabase.rpc('complete_user_task', { 
+                p_task_item_id: taskItemId 
+            });
+
+            if (error) throw error;
+
+            if (data?.is_bundle) {
+                setShowBundleSuccessToast(true);
+                setTimeout(() => setShowBundleSuccessToast(false), 5000);
+            } else {
+                setProfitAdded(data?.earned_amount || 0);
+                setTimeout(() => setProfitAdded(null), 3000);
+            }
+
+            await Promise.all([
+                refreshProfile(),
+                fetchTasks()
+            ]);
+        } catch (err: any) {
+            console.error("Submission error:", err);
+            alert(err.message || "Failed to submit optimization.");
+        } finally {
+            setIsSubmitting(false);
+            setSubmittingTaskId(null);
+        }
+    };
+
     const filteredTasks = tasks.filter(t => {
-        if (filter === 'all') return true;
-        return t.status === filter;
+        const matchesSearch = t.task_item?.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                             t.id.toString().includes(searchQuery);
+        const matchesFilter = filter === 'all' || t.status === filter;
+        return matchesSearch && matchesFilter;
     });
 
     const statusBadge = (status: string) => {
@@ -69,26 +112,28 @@ export default function RecordPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 space-y-4 animate-fade-in pb-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 space-y-4 animate-fade-in pb-12 font-record">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">{t('record')}</h2>
-                    <p className="text-text-secondary text-xs mt-1 font-bold uppercase tracking-widest">{tasks.length} {t('total_records_found')}</p>
+                    <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">Activity records</h2>
+                    <p className="text-text-secondary text-xs mt-1 font-bold uppercase tracking-widest">{filteredTasks.length} total records found</p>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
-                        <input 
-                            type="text" 
-                            placeholder={t('search_tasks')}
-                            className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-text-primary focus:outline-none focus:border-primary/50"
-                        />
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
+                            <input 
+                                type="text" 
+                                placeholder={t('search_tasks')}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl py-2.5 pl-9 pr-4 text-xs text-text-primary focus:outline-none focus:border-primary/50 w-[200px]"
+                            />
+                        </div>
+                        <button className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-text-secondary hover:text-primary hover:border-primary/30 transition-all">
+                            <Filter size={18} />
+                        </button>
                     </div>
-                    <button className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-text-secondary hover:text-text-primary transition-colors">
-                        <Filter size={18} />
-                    </button>
-                </div>
             </div>
 
             <div className="flex border-b border-black/5 dark:border-white/5 relative">
@@ -157,16 +202,54 @@ export default function RecordPage() {
                                     {task.task_item?.title || `${t('task')} #${task.task_item_id}`}
                                 </div>
                                 <div className="text-sm font-black text-success">
-                                    +{format(task.earned_amount)}
+                                    {task.status === 'pending' ? (task.earned_amount > 0 ? `+${format(task.earned_amount)}` : format(0)) : `+${format(task.earned_amount)}`}
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right flex flex-col items-end gap-2">
                                     {statusBadge(task.status)}
+                                    {task.status === 'pending' && (
+                                        <button 
+                                            onClick={() => handleSubmitPending(task.task_item_id)}
+                                            disabled={isSubmitting}
+                                            className={`px-3 py-1 rounded-lg bg-primary text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all
+                                                ${isSubmitting && submittingTaskId === task.task_item_id ? 'opacity-50 cursor-wait' : 'hover:scale-105 active:scale-95 cursor-pointer'}
+                                            `}
+                                        >
+                                            {isSubmitting && submittingTaskId === task.task_item_id ? t('submitting') : t('submit_order')}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
             </div>
+            {/* Profit Toast */}
+            {profitAdded !== null && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[1000] animate-bounce-in">
+                    <div className="bg-success text-white px-8 py-4 rounded-3xl shadow-[0_20px_50px_rgba(34,197,94,0.4)] flex items-center gap-4 border border-white/20">
+                        <CheckCircle size={24} />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Cycle Profit Applied</span>
+                            <span className="text-xl font-black">+{format(profitAdded)}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Huge Profit Toast */}
+            {showBundleSuccessToast && (
+                <div className="fixed top-[58%] left-1/2 -translate-x-1/2 z-[1000] animate-bounce-in w-[90%] md:w-auto">
+                    <div className="bg-gradient-to-br from-primary to-accent text-white px-8 py-6 rounded-3xl shadow-[0_20px_50px_rgba(157,80,187,0.5)] flex items-center gap-6 border border-white/30">
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                            <Zap className="text-white animate-pulse" size={28} />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Premium Order Success</span>
+                            <p className="text-sm md:text-md font-bold text-white max-w-[300px]">You have gotten Huge profit from the bundle you can now continue your daily task.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

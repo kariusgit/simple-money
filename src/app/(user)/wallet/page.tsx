@@ -23,7 +23,7 @@ export default function WalletPage() {
     return (
         <div className="space-y-8 animate-fade-in">
             {/* Header section with Balance Overview */}
-            <div className="relative group perspective-1000">
+            <div className="relative group perspective-1000 animate-slide-up">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-accent/30 rounded-[32px] blur-xl opacity-50"></div>
                 <div className="relative glass-card-strong p-8 md:p-12 min-h-[220px] flex flex-col justify-center overflow-hidden">
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -63,7 +63,7 @@ export default function WalletPage() {
             {/* Financial Hub: TWO MAIN CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Deposit Card */}
-                <Link href="/deposit" className="group">
+                <Link href="/deposit" className="group animate-diagonal-tl">
                     <div className="glass-card-glow p-8 md:p-10 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] border border-white/5 h-full flex flex-col justify-between cursor-pointer">
                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-6">
                             <ArrowDownLeft size={100} className="text-primary-light" />
@@ -97,7 +97,7 @@ export default function WalletPage() {
                 </Link>
 
                 {/* Withdrawal Card */}
-                <Link href="/withdraw" className="group">
+                <Link href="/withdraw" className="group animate-diagonal-tr">
                     <div className="glass-card-glow p-8 md:p-10 relative overflow-hidden transition-all duration-500 hover:scale-[1.02] border border-white/5 h-full flex flex-col justify-between cursor-pointer">
                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500 group-hover:-rotate-6">
                             <ArrowUpRight size={100} className="text-accent" />

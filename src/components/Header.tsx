@@ -22,8 +22,11 @@ import {
     Headset,
     Menu, 
     Sun, 
-    Moon 
+    Moon,
+    Wallet
 } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -32,42 +35,35 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
     const { profile, signOut } = useAuth();
     const { notifications, unreadCount, markAsRead, markAllRead, clearAll } = useNotifications();
+    const { format } = useCurrency();
     const router = useRouter();
     
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const { theme, toggleTheme } = useTheme();
     
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
 
-    // Initialize theme from document class
+    // Set Tawk attributes when profile is available with a delay to ensure websocket is ready
     useEffect(() => {
-        const isLight = document.documentElement.classList.contains('light');
-        setTheme(isLight ? 'light' : 'dark');
-    }, []);
+        if (!profile) return;
+        
+        const timer = setTimeout(() => {
+            try {
+                if ((window as any).Tawk_API && typeof (window as any).Tawk_API.setAttributes === 'function') {
+                    (window as any).Tawk_API.setAttributes({
+                        'name': profile.username || 'User',
+                        'email': profile.email
+                    }, function(error: any) {});
+                }
+            } catch (err) {
+                console.warn("Tawk attributes failed:", err);
+            }
+        }, 3000); // 3-second delay gives the socket server time to connect
 
-    // Set Tawk attributes when profile is available
-    useEffect(() => {
-        if (profile && (window as any).Tawk_API) {
-            (window as any).Tawk_API.setAttributes({
-                'name': profile.username || 'User',
-                'email': profile.email
-            }, function(error: any) {});
-        }
+        return () => clearTimeout(timer);
     }, [profile]);
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'dark' ? 'light' : 'dark';
-        setTheme(newTheme);
-        if (newTheme === 'light') {
-            document.documentElement.classList.add('light');
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
-        }
-    };
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -85,7 +81,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
     }, []);
 
     return (
-        <header className="h-16 md:h-20 bg-surface/30 backdrop-blur-xl border-b border-black/5 dark:border-white/5 sticky top-0 z-40 flex items-center px-4 md:px-8 transition-colors duration-300">
+        <header className={`h-16 md:h-20 sticky top-0 z-40 flex items-center px-4 md:px-8 transition-all duration-300 ${
+            theme === 'dark' 
+            ? 'bg-surface/30 backdrop-blur-xl border-b border-white/5 shadow-none' 
+            : 'bg-white border-b border-black/5 shadow-sm'
+        }`}>
             <div className="max-w-7xl w-full mx-auto flex items-center justify-between gap-4">
                 
 
@@ -106,22 +106,38 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <span className="text-sm md:text-xl font-bold text-text-primary dark:text-white tracking-tight">Simple Money</span>
                     </div>
                 </div>
-
-
                 <div className="flex items-center gap-2 md:gap-4 ml-auto">
-                    
+                    {/* Balance Pill - Forced Premium Dark Aesthetic */}
+                    <div className="flex items-center gap-3 md:gap-6 rounded-full px-4 md:px-7 py-1.5 md:py-2.5 border border-white/10 active:scale-95 transition-all cursor-default overflow-hidden shadow-2xl bg-black">
+                        <span className="text-[9px] md:text-[11px] font-black text-white uppercase tracking-[0.3em] shrink-0">
+                            BALANCE
+                        </span>
+                        <span className="text-sm md:text-lg font-black text-[#00FF88] tracking-tight whitespace-nowrap drop-shadow-[0_0_8px_rgba(0,255,136,0.3)]">
+                            {format(profile?.wallet_balance ?? 0)}
+                        </span>
+                    </div>
+
                     {/* Theme Toggle */}
                     <button 
                         onClick={toggleTheme}
-                        className="p-2 md:p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-text-secondary hover:text-primary hover:dark:text-primary-light hover:bg-primary/10 transition-all"
+                        className="p-2 md:p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-text-secondary hover:text-primary hover:dark:text-primary-light hover:bg-primary/10 transition-all border border-black/5 dark:border-transparent active:scale-90"
                         title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                     >
-                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                        {theme === 'dark' ? <Sun size={20} className="animate-spin-slow" /> : <Moon size={20} />}
                     </button>
 
                     {/* Support Button */}
                     <button 
-                        onClick={() => (window as any).Tawk_API?.maximize()}
+                        onClick={() => {
+                            const tawk = (window as any).Tawk_API;
+                            if (tawk) {
+                                if (typeof tawk.isChatMaximized === 'function' && tawk.isChatMaximized()) {
+                                    tawk.minimize?.();
+                                } else {
+                                    tawk.maximize?.();
+                                }
+                            }
+                        }}
                         className="p-2 md:p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-text-secondary hover:text-primary hover:dark:text-primary-light hover:bg-primary/10 transition-all md:flex hidden"
                         title="Live Support"
                     >
@@ -141,18 +157,18 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         </button>
 
                         {isNotifOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-80 glass-card p-4 rounded-2xl shadow-2xl shadow-black/50 border border-white/10 animate-slide-up origin-top-right">
+                            <div className="absolute top-full right-0 mt-2 w-80 bg-surface dark:bg-[#1a1421] backdrop-blur-none p-4 rounded-2xl shadow-[0_30px_90px_rgba(0,0,0,0.9)] border border-white/20 animate-slide-up origin-top-right">
                                 <div className="flex items-center justify-between mb-4 border-b border-black/5 dark:border-white/5 pb-3">
                                     <h3 className="font-bold text-text-primary dark:text-white text-sm">Notifications</h3>
                                     {notifications.length > 0 && (
                                         <div className="flex items-center gap-3">
                                             {unreadCount > 0 && (
-                                                <button onClick={markAllRead} className="text-[10px] font-black uppercase text-primary-light hover:text-primary transition-colors">
-                                                    Mark Read
+                                                <button onClick={markAllRead} className="text-[10px] font-black text-primary-light hover:text-primary transition-colors">
+                                                    Mark read
                                                 </button>
                                             )}
-                                            <button onClick={clearAll} className="text-[10px] font-black uppercase text-text-secondary/60 hover:text-danger transition-colors">
-                                                Clear All
+                                            <button onClick={clearAll} className="text-[10px] font-black text-text-secondary/60 hover:text-danger transition-colors">
+                                                Clear all
                                             </button>
                                         </div>
                                     )}
@@ -194,7 +210,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                     onClick={() => setIsNotifOpen(false)}
                                     className="block text-center mt-3 pt-3 border-t border-black/5 dark:border-white/5 text-xs text-text-secondary hover:text-text-primary hover:dark:text-white transition-colors"
                                 >
-                                    View All Notifications
+                                    View all notifications
                                 </Link>
                             </div>
                         )}
@@ -210,7 +226,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         </button>
 
                         {isProfileOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-56 glass-card rounded-2xl shadow-2xl shadow-black/50 border border-white/10 animate-slide-up origin-top-right overflow-hidden">
+                            <div className="absolute top-full right-0 mt-2 w-56 bg-surface dark:bg-[#1a1421] backdrop-blur-none rounded-2xl shadow-[0_30px_90px_rgba(0,0,0,0.9)] border border-white/20 animate-slide-up origin-top-right overflow-hidden">
                                 
                                 <div className="p-4 border-b border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/[0.02]">
                                     <div className="flex items-center gap-3">
@@ -219,8 +235,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold text-text-primary dark:text-white">{profile?.username || 'User'}</p>
-                                            <p className="text-[10px] text-text-secondary uppercase tracking-wider mt-0.5">
-                                                VIP Level {profile?.level_id || 1}
+                                            <p className="text-[10px] text-text-secondary mt-0.5">
+                                                Vip level {profile?.level_id || 1}
                                             </p>
                                         </div>
                                     </div>
@@ -229,11 +245,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                 <div className="p-2 space-y-1">
                                     <Link onClick={() => setIsProfileOpen(false)} href="/profile/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-black/5 hover:dark:bg-white/5 text-text-secondary hover:text-text-primary hover:dark:text-white transition-colors group">
                                         <Settings size={16} />
-                                        <span className="text-xs font-medium">Profile Settings</span>
+                                        <span className="text-xs font-medium">Profile settings</span>
                                     </Link>
                                     <Link onClick={() => setIsProfileOpen(false)} href="/profile/wallet" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-black/5 hover:dark:bg-white/5 text-text-secondary hover:text-text-primary hover:dark:text-white transition-colors group">
                                         <CreditCard size={16} />
-                                        <span className="text-xs font-medium">Payment Methods</span>
+                                        <span className="text-xs font-medium">Payment methods</span>
                                     </Link>
                                     <Link onClick={() => setIsProfileOpen(false)} href="/profile/security" className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-black/5 hover:dark:bg-white/5 text-text-secondary hover:text-text-primary hover:dark:text-white transition-colors group">
                                         <ShieldCheck size={16} />
@@ -254,7 +270,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                                             <div className="w-8 h-8 rounded-lg bg-danger/20 flex items-center justify-center text-danger group-hover/logout:scale-110 transition-transform">
                                                 <LogOut size={16} />
                                             </div>
-                                            <span className="text-xs font-bold text-text-secondary group-hover/logout:text-danger transition-colors uppercase tracking-widest">Sign Out</span>
+                                            <span className="text-xs font-bold text-text-secondary group-hover/logout:text-danger transition-colors">Sign out</span>
                                         </div>
                                         <ChevronRight size={14} className="text-text-secondary group-hover/logout:text-danger group-hover/logout:translate-x-1 transition-all" />
                                     </button>
@@ -266,6 +282,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
                 </div>
             </div>
+            
         </header>
     );
 }

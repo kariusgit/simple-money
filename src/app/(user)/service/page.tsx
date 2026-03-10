@@ -114,31 +114,38 @@ export default function CustomerServicePage() {
                 <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.3em] pl-2 opacity-50 flex items-center gap-2">
                     <Target size={14} /> Official Support Channels
                 </h3>
-                {channels.map((c, idx) => (
-                    <a
-                        key={idx}
-                        href={c.action}
-                        target={c.target}
-                        className="group glass-card p-7 flex flex-col md:flex-row items-center gap-6 hover:border-primary/30 transition-all animate-slide-up"
-                    >
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${c.color} shadow-xl shadow-black/20`}>
-                            <c.icon size={28} />
-                        </div>
-                        <div className="flex-1 text-center md:text-left">
-                            <div className="flex flex-col md:flex-row items-center gap-3 mb-1.5">
-                                <h4 className="text-xl font-black text-white uppercase tracking-tight">{c.title}</h4>
-                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${c.badgeColor}`}>{c.badge}</span>
+                {channels.map((c, idx) => {
+                    const isTawk = c.action === TAWK_TO_LINK;
+                    const Component = isTawk ? 'button' : 'a';
+                    const props = isTawk 
+                        ? { onClick: () => (window as any).Tawk_API?.maximize() }
+                        : { href: c.action, target: c.target };
+
+                    return (
+                        <Component
+                            key={idx}
+                            {...props}
+                            className="w-full text-left group glass-card p-7 flex flex-col md:flex-row items-center gap-6 hover:border-primary/30 transition-all animate-slide-up"
+                        >
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${c.color} shadow-xl shadow-black/20`}>
+                                <c.icon size={28} />
                             </div>
-                            <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 opacity-80">{c.subtitle}</p>
-                            <p className="text-[11px] font-bold text-text-secondary invisible md:visible uppercase tracking-widest opacity-40 leading-relaxed max-w-xl">
-                                {c.description}
-                            </p>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <ChevronRight size={20} className="text-text-secondary group-hover:text-white transition-colors" />
-                        </div>
-                    </a>
-                ))}
+                            <div className="flex-1 text-center md:text-left">
+                                <div className="flex flex-col md:flex-row items-center gap-3 mb-1.5">
+                                    <h4 className="text-xl font-black text-white uppercase tracking-tight">{c.title}</h4>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${c.badgeColor}`}>{c.badge}</span>
+                                </div>
+                                <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 opacity-80">{c.subtitle}</p>
+                                <p className="text-[11px] font-bold text-text-secondary line-clamp-2 invisible md:visible uppercase tracking-widest opacity-40 leading-relaxed max-w-xl">
+                                    {c.description}
+                                </p>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                <ChevronRight size={20} className="text-text-secondary group-hover:text-white transition-colors" />
+                            </div>
+                        </Component>
+                    );
+                })}
             </div>
 
             {/* Quick Resolution Notice */}

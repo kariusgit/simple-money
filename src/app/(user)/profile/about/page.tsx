@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, DollarSign, Shield, Globe, Users } from 'lucide-react';
+import { ArrowLeft, DollarSign, Shield, Globe, Users, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AboutPage() {
@@ -63,6 +63,17 @@ export default function AboutPage() {
                     For support, please use the **Concierge Desk** link on your dashboard or navigation. Our team
                     is available during operating hours (9:00 AM - 9:00 PM Eastern Time).
                 </p>
+            </div>
+
+            {/* VIP Charter Button */}
+            <div className="animate-slide-up px-2" style={{ animationDelay: '0.3s' }}>
+                <button 
+                    onClick={() => window.open('/documents/VIP_CHARTER.pdf', '_blank')}
+                    className="w-full bg-black dark:bg-white text-white dark:text-black py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                >
+                    <FileText size={18} />
+                    Download VIP Charter (PDF)
+                </button>
             </div>
 
             <div className="text-center py-4 text-xs text-text-secondary/50 border-t border-text-primary/5">

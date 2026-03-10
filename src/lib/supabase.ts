@@ -13,6 +13,7 @@ export const supabase: SupabaseClient = globalForSupabase.supabase || (() => {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        storageKey: 'sb-auth-token-money',
     };
 
     const client = createClient(

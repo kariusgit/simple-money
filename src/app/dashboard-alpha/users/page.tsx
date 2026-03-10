@@ -279,12 +279,27 @@ export default function AdminUsersPage() {
                                                                      value={editData.completed_count || 0} 
                                                                      onChange={(e) => setEditData({ ...editData, completed_count: parseInt(e.target.value) || 0 })} 
                                                                  />
-                                                                 <span className="text-[9px] text-text-secondary self-center font-black uppercase opacity-50">/ {(editData.current_set || 1) * ((editData.level_id || 1) * 10 + 30)}</span>
+                                                                 <span className="text-[9px] text-text-secondary self-center font-black uppercase opacity-50">/ {(editData.current_set || 1) * ((editData.level_id || 1) * 5 + 35)}</span>
                                                              </div>
                                                              <div className="flex gap-0.5 mt-1.5 overflow-x-auto pb-1 max-w-[120px]">
-                                                                <button onClick={() => setEditData({ ...editData, completed_count: 0, current_set: 1 })} className="text-[7px] px-1 py-0.5 rounded bg-white/5 hover:bg-white/10 text-white/50 border border-white/5 uppercase font-bold transition-all whitespace-nowrap">S1 (0/{((editData.level_id || 1) * 10 + 30)})</button>
-                                                                <button onClick={() => setEditData({ ...editData, completed_count: ((editData.level_id || 1) * 10 + 30), current_set: 2 })} className="text-[7px] px-1 py-0.5 rounded bg-primary/20 hover:bg-primary/40 text-primary-light border border-primary/20 uppercase font-bold transition-all whitespace-nowrap">S2 ({((editData.level_id || 1) * 10 + 30)}/{((editData.level_id || 1) * 10 + 30) * 2})</button>
-                                                                <button onClick={() => setEditData({ ...editData, completed_count: ((editData.level_id || 1) * 10 + 30) * 2, current_set: 3 })} className="text-[7px] px-1 py-0.5 rounded bg-accent/20 hover:bg-accent/40 text-accent-light border border-accent/20 uppercase font-bold transition-all whitespace-nowrap">S3 ({((editData.level_id || 1) * 10 + 30) * 2}/{((editData.level_id || 1) * 10 + 30) * 3})</button>
+                                                                {(() => {
+                                                                    const tps = (editData.level_id || 1) * 5 + 35;
+                                                                    const spd = (editData.level_id || 1) + 2;
+                                                                    return Array.from({ length: spd }).map((_, i) => (
+                                                                        <button 
+                                                                            key={i}
+                                                                            onClick={() => setEditData({ ...editData, completed_count: tps * i, current_set: i + 1 })} 
+                                                                            className={`text-[7px] px-1 py-0.5 rounded border uppercase font-bold transition-all whitespace-nowrap
+                                                                                ${i === 0 ? 'bg-white/5 text-white/50 border-white/5' : 
+                                                                                  i === 1 ? 'bg-primary/20 text-primary-light border-primary/20' :
+                                                                                  i === 2 ? 'bg-accent/20 text-accent-light border-accent/20' :
+                                                                                  'bg-success/20 text-success border-success/20'}
+                                                                            `}
+                                                                        >
+                                                                            S{i + 1} ({tps * i}/{tps * (i + 1)})
+                                                                        </button>
+                                                                    ));
+                                                                })()}
                                                             </div>
                                                          </div>
                                                     </td>
@@ -330,13 +345,13 @@ export default function AdminUsersPage() {
                                                              <div className="flex justify-between items-center mb-1">
                                                                  <span className="text-[9px] font-black text-white/90 tracking-widest uppercase">Set {user.current_set || 1}</span>
                                                                  <span className="text-[9px] text-text-secondary font-mono bg-white/5 px-1 rounded">
-                                                                     {user.completed_count || 0}/{(user.current_set || 1) * ((user.level_id || 1) * 10 + 30)}
+                                                                     {user.completed_count || 0}/{(user.current_set || 1) * ((user.level_id || 1) * 5 + 35)}
                                                                  </span>
                                                              </div>
                                                              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
                                                                  <div 
                                                                      className="h-full bg-gradient-to-r from-primary to-accent shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all duration-700 ease-out" 
-                                                                     style={{ width: `${Math.min(100, ((user.completed_count || 0) / ((user.current_set || 1) * ((user.level_id || 1) * 10 + 30))) * 100)}%` }} 
+                                                                     style={{ width: `${Math.min(100, ((user.completed_count || 0) / ((user.current_set || 1) * ((user.level_id || 1) * 5 + 35))) * 100)}%` }} 
                                                                  />
                                                              </div>
                                                          </div>

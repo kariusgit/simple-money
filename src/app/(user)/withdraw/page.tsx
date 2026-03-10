@@ -209,15 +209,20 @@ export default function WithdrawPage() {
                                         key={val}
                                         type="button"
                                         onClick={() => setAmount(String(val))}
-                                        className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black text-text-secondary uppercase hover:bg-primary/20 hover:text-white hover:border-primary/30 transition-all"
+                                        className="px-4 py-3 rounded-xl bg-white/5 border border-white/5 text-[11px] font-black text-white uppercase flex items-center gap-2 hover:bg-primary/20 hover:border-primary/30 transition-all shadow-sm"
                                     >
-                                        ${val.toLocaleString()}
+                                        <span>${val.toLocaleString()}</span>
+                                        <img 
+                                            src={network === 'ERC20' ? "https://cryptologos.cc/logos/ethereum-eth-logo.png" : "https://cryptologos.cc/logos/tether-usdt-logo.png"} 
+                                            className="w-3.5 h-3.5 object-contain opacity-70" 
+                                            alt=""
+                                        />
                                     </button>
                                 ))}
                                 <button
                                     type="button"
                                     onClick={() => setAmount(String(balance))}
-                                    className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-[10px] font-black text-primary-light uppercase tracking-tighter"
+                                    className="px-5 py-3 rounded-xl bg-primary/10 border border-primary/20 text-[11px] font-black text-primary-light uppercase tracking-tighter hover:bg-primary/20 transition-all"
                                 >
                                     MAX ALL
                                 </button>
@@ -227,21 +232,22 @@ export default function WithdrawPage() {
                         {/* Network Switcher */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] block">Target Network</label>
-                            <div className="grid grid-cols-3 gap-3 p-2 bg-black/40 rounded-[20px] border border-white/5">
+                            <div className="grid grid-cols-3 gap-3 p-2 bg-black/40 rounded-[24px] border border-white/5">
                                 {[
-                                    { id: 'TRX', label: 'USDT TRX' },
-                                    { id: 'BEP20', label: 'USDT BEP-20' },
-                                    { id: 'ERC20', label: 'USDT ERC-20' }
+                                    { id: 'TRX', label: 'USDT-TRC20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+                                    { id: 'BEP20', label: 'USDT-BEP20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+                                    { id: 'ERC20', label: 'ETH', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' }
                                 ].map(net => (
                                     <button
                                         key={net.id}
                                         type="button"
                                         onClick={() => setNetwork(net.id as any)}
-                                        className={`py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${network === net.id 
-                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' 
-                                            : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
+                                        className={`py-4 rounded-xl flex flex-col items-center gap-1.5 transition-all ${network === net.id 
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02] border border-primary-light/30' 
+                                            : 'text-text-secondary hover:bg-white/5 hover:text-white border border-transparent'}`}
                                     >
-                                        {net.id === 'ERC20' ? 'ETH Network' : net.label}
+                                        <img src={net.icon} alt="" className="w-5 h-5 object-contain" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">{net.id === 'ERC20' ? 'ETH' : net.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -250,16 +256,16 @@ export default function WithdrawPage() {
                         {/* Wallet Field */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] block">
-                                {network === 'ERC20' ? 'Ethereum (ETH)' : network === 'BEP20' ? 'USDT BEP-20' : 'USDT TRX'} Address
+                                {network === 'ERC20' ? 'Ethereum (ETH)' : network === 'BEP20' ? 'USDT BEP-20' : 'USDT TRC-20'} Address
                             </label>
-                            <div className="relative">
-                                <Wallet size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-secondary opacity-40" />
+                            <div className="relative group">
+                                <Wallet size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-primary-light transition-all group-focus-within:scale-110" />
                                 <input
                                     type="text"
                                     value={walletAddress}
                                     onChange={(e) => setWalletAddress(e.target.value)}
                                     placeholder={`Enter ${network === 'ERC20' ? 'ETH' : network} Wallet Address`}
-                                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-[20px] py-5 pl-14 pr-6 text-sm font-mono text-text-primary dark:text-white placeholder:text-text-secondary/10 focus:border-primary/50 focus:bg-primary/5 transition-all outline-none"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[24px] py-6 pl-14 pr-6 text-base md:text-lg font-black font-mono text-white placeholder:text-text-secondary/10 focus:border-primary/50 focus:bg-primary/5 transition-all outline-none tracking-tight"
                                 />
                             </div>
                         </div>

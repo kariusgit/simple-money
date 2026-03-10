@@ -149,9 +149,9 @@ export default function DepositPage() {
                 </div>
                 <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 px-4 py-2 rounded-xl">
                     <img 
-                        src={network === 'ERC20' ? "https://cryptologos.cc/logos/ethereum-eth-logo.png" : "https://cryptologos.cc/logos/tether-usdt-logo.png"} 
+                        src={network === 'ERC20' ? "/images/crypto/eth.png" : "/images/crypto/usdt.png"} 
                         alt={network === 'ERC20' ? "ETH" : "USDT"} 
-                        className="w-5 h-5 object-contain" 
+                        className="w-8 h-8 object-contain" 
                     />
                     <span className="text-sm font-black text-text-primary dark:text-white uppercase tracking-tighter">
                         {network === 'ERC20' ? 'ETH' : 'USDT'}
@@ -172,18 +172,19 @@ export default function DepositPage() {
                         {/* Network Switcher */}
                         <div className="grid grid-cols-3 gap-3 p-2 bg-black/40 rounded-[24px] border border-white/5">
                             {[
-                                { id: 'TRX', label: 'USDT TRX' },
-                                { id: 'BEP20', label: 'USDT BEP-20' },
-                                { id: 'ERC20', label: 'USDT ERC-20' }
+                                { id: 'TRX', label: 'USDT-TRC20', icon: '/images/crypto/usdt.png' },
+                                { id: 'BEP20', label: 'USDT-BEP20', icon: '/images/crypto/usdt.png' },
+                                { id: 'ERC20', label: 'ETH', icon: '/images/crypto/eth.png' }
                             ].map(net => (
                                 <button
                                     key={net.id}
                                     onClick={() => setNetwork(net.id as any)}
-                                    className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${network === net.id 
-                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' 
-                                        : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
+                                    className={`py-3.5 rounded-xl flex flex-col items-center gap-1.5 transition-all ${network === net.id 
+                                        ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02] border border-primary-light/30' 
+                                        : 'text-text-secondary hover:bg-white/5 hover:text-white border border-transparent'}`}
                                 >
-                                    {net.label}
+                                    <img src={net.icon} alt="" className="w-5 h-5 object-contain" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">{net.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -198,15 +199,22 @@ export default function DepositPage() {
                                     }}
                                     className={`p-4 rounded-2xl border transition-all relative overflow-hidden group ${
                                         amount === String(val) && !customAmount
-                                        ? 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(157,80,187,0.1)]' 
+                                        ? 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(157,80,187,0.15)]' 
                                         : 'bg-white/5 border-white/5 hover:border-white/10'
                                     }`}
                                 >
                                     <div className="relative z-10 flex flex-col items-center">
-                                        <span className={`text-xl font-black transition-colors ${amount === String(val) && !customAmount ? 'text-white' : 'text-text-secondary group-hover:text-white'}`}>
-                                            ${val}
-                                        </span>
-                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-40 mt-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`text-xl font-black transition-colors ${amount === String(val) && !customAmount ? 'text-white' : 'text-text-secondary group-hover:text-white'}`}>
+                                                ${val}
+                                            </span>
+                                            <img 
+                                                src={network === 'ERC20' ? "/images/crypto/eth.png" : "/images/crypto/usdt.png"} 
+                                                className="w-4 h-4 object-contain opacity-60" 
+                                                alt=""
+                                            />
+                                        </div>
+                                        <span className="text-[10px] uppercase font-bold tracking-widest opacity-40">
                                             {network === 'ERC20' ? 'ETH' : 'USDT'}
                                         </span>
                                     </div>
@@ -230,7 +238,7 @@ export default function DepositPage() {
                                     setAmount('');
                                 }}
                                 placeholder={`Enter amount in ${network === 'ERC20' ? 'ETH' : 'USDT'}`}
-                                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-[20px] py-5 pl-12 pr-6 text-lg font-black text-text-primary dark:text-white placeholder:text-text-secondary/20 focus:border-primary/50 focus:bg-primary/5 transition-all outline-none"
+                                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-[20px] py-6 pl-12 pr-6 text-xl font-black text-text-primary dark:text-white placeholder:text-text-secondary/20 focus:border-primary/50 focus:bg-primary/5 transition-all outline-none"
                             />
                         </div>
                     </div>
@@ -291,7 +299,7 @@ export default function DepositPage() {
                             <div className="absolute inset-0 bg-primary/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                             <QRCodeSVG
                                 value={depositAddress}
-                                size={180}
+                                size={200}
                                 bgColor="#ffffff"
                                 fgColor="#000000"
                                 level="H"
@@ -303,13 +311,13 @@ export default function DepositPage() {
                                 <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-2">
                                     {network === 'ERC20' ? 'ETH' : network} Address
                                 </p>
-                                <div className="glass-card px-4 py-3 border border-white/10 flex items-center justify-between group overflow-hidden">
-                                    <span className="text-[11px] font-mono text-white truncate max-w-[200px]">{depositAddress}</span>
+                                <div className="glass-card px-4 py-4 border border-white/20 flex items-center justify-between group overflow-hidden bg-black/40">
+                                    <span className="text-sm md:text-base font-black font-mono text-white truncate max-w-[220px] tracking-tight">{depositAddress}</span>
                                     <button 
                                         onClick={copyAddress}
-                                        className="text-primary-light hover:text-white transition-colors relative z-10"
+                                        className="text-primary-light hover:text-white transition-all scale-125 ml-2 relative z-10"
                                     >
-                                        {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
+                                        {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
                                     </button>
                                     <div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform" />
                                 </div>

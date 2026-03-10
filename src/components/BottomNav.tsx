@@ -17,7 +17,7 @@ export default function BottomNav() {
     const { t } = useLanguage();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-black/5 dark:border-white/5 md:hidden pb-safe transition-all duration-300">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface dark:bg-surface/80 dark:backdrop-blur-xl border-t border-black/5 dark:border-white/5 md:hidden pb-safe transition-all duration-300 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
             <div className="grid grid-cols-4 w-full h-16 md:h-20 items-end pb-2">
                 {tabs.map((item) => {
                     const { icon: Icon, label, href, isCenter } = item;

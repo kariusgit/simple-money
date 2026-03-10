@@ -8,15 +8,18 @@ export interface Profile {
     referred_by: string | null;
     wallet_balance: number;
     profit: number;
+    total_profit: number;
     frozen_amount: number;
     avatar_url: string | null;
     email: string;
     completed_count: number;
     current_set: number;
+    last_reset_at: string;
     wallet_address?: string | null;
     security_pin?: string | null;
     language: string;
     currency: string;
+    pending_bundle: any | null;
     created_at: string;
 }
 

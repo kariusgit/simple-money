@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { CurrencyProvider } from '@/context/CurrencyContext';
+import { SettingsProvider } from '@/context/SettingsContext';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
@@ -25,17 +26,19 @@ export default function RootLayout({
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
             </head>
             <body>
-                <ThemeProvider>
-                    <AuthProvider>
-                        <LanguageProvider>
-                            <CurrencyProvider>
-                                <NotificationProvider>
-                                    {children}
-                                </NotificationProvider>
-                            </CurrencyProvider>
-                        </LanguageProvider>
-                    </AuthProvider>
-                </ThemeProvider>
+                <SettingsProvider>
+                    <ThemeProvider>
+                        <AuthProvider>
+                            <LanguageProvider>
+                                <CurrencyProvider>
+                                    <NotificationProvider>
+                                        {children}
+                                    </NotificationProvider>
+                                </CurrencyProvider>
+                            </LanguageProvider>
+                        </AuthProvider>
+                    </ThemeProvider>
+                </SettingsProvider>
 
                 <Script id="tawk-to" strategy="afterInteractive">
                     {`
@@ -54,7 +57,7 @@ export default function RootLayout({
                     };
 
                     Tawk_API.onLoad = function(){
-                        Tawk_API.hideWidget();
+                        // Keep visible by default
                     };
 
                     (function(){

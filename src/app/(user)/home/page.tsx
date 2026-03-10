@@ -98,7 +98,7 @@ export default function HomePage() {
                         <div className="space-y-4 max-w-2xl">
                             <div className="flex items-center gap-3 animate-slide-up">
                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-primary to-accent p-[1px]">
-                                    <div className="w-full h-full rounded-[15px] bg-surface flex items-center justify-center text-2xl animate-blob-fluid">👋</div>
+                                    <div className="w-full h-full rounded-[15px] bg-white dark:bg-surface flex items-center justify-center text-2xl animate-blob-fluid">👋</div>
                                 </div>
                                 <div className="flex flex-col">
                                     <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export default function HomePage() {
                     </div>
                     <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-70">{t('available_balance')}</p>
                     <div className="flex items-baseline gap-1 mb-6">
-                        <h2 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter drop-shadow-md">
+                        <h2 className="text-5xl md:text-6xl font-black text-text-primary tracking-tighter drop-shadow-md">
                             {format(profile?.wallet_balance || 0)}
                         </h2>
                     </div>
@@ -153,13 +153,13 @@ export default function HomePage() {
                 </div>
 
                 {/* Today's Profit Card */}
-                <div className="glass-card p-8 group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] bg-gradient-to-br from-black/20 to-transparent">
-                    <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500 origin-top-right">
+                <div className="glass-card p-8 group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] dark:bg-gradient-to-br dark:from-black/20 dark:to-transparent">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform duration-500 origin-top-right">
                         <TrendingUp size={80} className="text-accent" />
                     </div>
                     <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-70">{t('today_profit')}</p>
                     <div className="flex items-baseline gap-1 mb-6">
-                        <h2 className="text-4xl md:text-5xl font-black text-accent tracking-tighter drop-shadow-md">
+                        <h2 className="text-5xl md:text-6xl font-black text-accent tracking-tighter drop-shadow-md">
                             {format(profile?.profit || 0)}
                         </h2>
                     </div>

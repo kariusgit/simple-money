@@ -34,43 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
 
-            // Auto-recover only if the profile truly doesn't exist (PGRST116 = no rows)
-            if (!data && error?.code === 'PGRST116') {
-                const new_referral_code = Math.random().toString(36).substring(2, 6).toUpperCase();
-
-                const { data: newProfile, error: insertError } = await supabase
-                    .from('profiles')
-                    .insert({
-                        id: userId,
-                        username: 'User_' + userId.substring(0, 8),
-                        phone: '',
-                        role: 'user',
-                        referral_code: new_referral_code,
-                        wallet_balance: 0,
-                        profit: 0,
-                        frozen_amount: 0,
-                    })
-                    .select()
-                    .single();
-
-                if (!insertError && newProfile) {
-                    await supabase.from('referral_codes').insert({
-                        code: new_referral_code,
-                        owner_id: userId,
-                        is_active: true
-                    }).single();
-                    data = newProfile;
-                } else {
-                    // Profile may have been created by trigger in the meantime — try fetching again
-                    const { data: retryData } = await supabase
-                        .from('profiles').select('*').eq('id', userId).single();
-                    if (retryData) data = retryData;
-                }
+            if (error) {
+                console.error(`Error fetching profile (${error.code}):`, error.message, error.details);
             }
-
-
 
             setProfile(data || null);
         } catch (err) {

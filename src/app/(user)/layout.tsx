@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import ActivityFeed from '@/components/ActivityFeed';
 import { useState } from 'react';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
     return (
         <>
+            <ActivityFeed />
             <div className="min-h-screen bg-transparent flex transition-colors duration-300">
                 {/* Desktop Sidebar */}
                 <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

@@ -39,7 +39,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         balance: 'Available balance',
         balance_sidebar: 'Balance',
         available_tether: 'Available tether (USDT)',
-        secured_rebate: 'SECURED REBATE',
+        secured_rebate: 'Secured rebate',
         today_profit: "Today's profit",
         total_profit: 'Total profit',
         daily_profit: 'Daily profit',
@@ -61,7 +61,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         no_records_found: 'No matching records found',
         item_not_found: 'Item not found',
         matching: 'Matching...',
-        sequence: 'SEQUENCE',
+        sequence: 'Sequence',
         tap_to_match: 'Tap to match',
         neural_active: 'Neural active',
         match_found: 'Match found!',
@@ -108,15 +108,18 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: 'Click to optimize now',
         view_recent_settlements: 'View recent settlements',
         start_tasks: 'Start tasks',
-        activity_records: 'Activity & records',
+        activity_records: 'Record',
         my_profile: 'My profile',
-        faq: 'FAQ',
+        faq: 'Faq',
         legal_governance: 'Legal governance',
         institutional: 'Institutional',
         system_restricted: 'System restricted',
         negative_balance_detected: 'Negative balance detected',
         live_support: 'Live support',
-        joined: 'Joined'
+        joined: 'Joined',
+        submitting: 'Submitting...',
+        submitting_order: 'Submitting order...',
+        submit_order: 'Submit order'
     },
     Spanish: {
         home: 'Inicio',
@@ -220,7 +223,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: 'Haz clic para optimizar ahora',
         view_recent_settlements: 'Ver liquidaciones recientes',
         start_tasks: 'Iniciar tareas',
-        activity_records: 'Actividad y registros',
+        activity_records: 'Registros',
         my_profile: 'Mi perfil',
         faq: 'Preguntas frecuentes',
         legal_governance: 'Gobernanza legal',
@@ -228,7 +231,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         system_restricted: 'Sistema restringido',
         negative_balance_detected: 'Saldo negativo detectado',
         live_support: 'Soporte en vivo',
-        joined: 'Unido'
+        joined: 'Unido',
+        submitting: 'Enviando...',
+        submitting_order: 'Enviando orden...',
+        submit_order: 'Enviar orden'
     },
     French: {
         home: 'Accueil',
@@ -331,7 +337,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: 'Cliquez pour optimiser maintenant',
         view_recent_settlements: 'Afficher les règlements récents',
         start_tasks: 'Démarrer les tâches',
-        activity_records: 'Activité et dossiers',
+        activity_records: 'Dossiers',
         my_profile: 'Mon profil',
         faq: 'FAQ',
         legal_governance: 'Gouvernance légale',
@@ -339,7 +345,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         system_restricted: 'Système restreint',
         negative_balance_detected: 'Solde négatif détecté',
         live_support: 'Support en direct',
-        joined: 'Rejoint'
+        joined: 'Rejoint',
+        submitting: 'Envoi...',
+        submitting_order: 'Envoi de la commande...',
+        submit_order: 'Soumettre la commande'
     },
     German: {
         home: 'Startseite',
@@ -442,7 +451,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: 'Klicken Sie, um jetzt zu optimieren',
         view_recent_settlements: 'Aktuelle abrechnungen anzeigen',
         start_tasks: 'Aufgaben starten',
-        activity_records: 'Aktivität & aufzeichnungen',
+        activity_records: 'Aufzeichnungen',
         my_profile: 'Mein profil',
         faq: 'FAQ',
         legal_governance: 'Rechtliche governance',
@@ -450,7 +459,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         system_restricted: 'System eingeschränkt',
         negative_balance_detected: 'Negativer saldo erkannt',
         live_support: 'Live-unterstützung',
-        joined: 'Beigetreten'
+        joined: 'Beigetreten',
+        submitting: 'Wird gesendet...',
+        submitting_order: 'Bestellung wird gesendet...',
+        submit_order: 'Bestellung absenden'
     },
     Chinese: {
         home: '首页',
@@ -553,7 +565,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: '点击立即优化',
         view_recent_settlements: '查看最近结算',
         start_tasks: '开始任务',
-        activity_records: '活动与记录',
+        activity_records: '记录',
         my_profile: '个人资料',
         faq: '常见问题',
         legal_governance: '法律监管',
@@ -561,7 +573,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         system_restricted: '系统受限',
         negative_balance_detected: '检测到负余额',
         live_support: '在线客服',
-        joined: '加入时间'
+        joined: '加入时间',
+        submitting: '提交中...',
+        submitting_order: '订单提交中...',
+        submit_order: '提交订单'
     },
     Japanese: {
         home: 'ホーム',
@@ -664,7 +679,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         click_to_optimize_now: 'クリックして今すぐ最適化',
         view_recent_settlements: '最近の決済を表示',
         start_tasks: 'タスク開始',
-        activity_records: '活動と記録',
+        activity_records: '記録',
         my_profile: 'マイプロフィール',
         faq: 'FAQ',
         legal_governance: '法的ガバナンス',
@@ -672,27 +687,42 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         system_restricted: 'システム制限中',
         negative_balance_detected: 'マイナス残高が検出されました',
         live_support: 'ライブサポート',
-        joined: '参加日'
+        joined: '参加日',
+        submitting: '送信中...',
+        submitting_order: '注文を送信中...',
+        submit_order: '注文を送信'
     }
 };
 
 interface LanguageContextType {
     language: LanguageCode;
+    availableLanguages: LanguageCode[];
     setLanguage: (lang: LanguageCode) => void;
     t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
     language: 'English',
+    availableLanguages: ['English'],
     setLanguage: () => { },
     t: (key) => key,
 });
 
 export const useLanguage = () => useContext(LanguageContext);
 
+import { useSiteSettings } from './SettingsContext';
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const { profile } = useAuth();
+    const { languages: backendLanguages } = useSiteSettings();
     const [language, setLanguage] = useState<LanguageCode>('English');
+    const [availableLanguages, setAvailableLanguages] = useState<LanguageCode[]>(['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese']);
+
+    useEffect(() => {
+        if (backendLanguages && Array.isArray(backendLanguages)) {
+            setAvailableLanguages(backendLanguages as LanguageCode[]);
+        }
+    }, [backendLanguages]);
 
     useEffect(() => {
         const savedLang = localStorage.getItem('language') as LanguageCode;
@@ -724,7 +754,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+        <LanguageContext.Provider value={{ language, availableLanguages, setLanguage: handleSetLanguage, t }}>
             {children}
         </LanguageContext.Provider>
     );

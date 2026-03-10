@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const getAdminClient = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) throw new Error('Missing Supabase Service Key or URL');
+    return createClient(url, key);
+};
 
 export async function POST(req: NextRequest) {
     try {
@@ -14,6 +16,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Email, password and username are required.' }, { status: 400 });
         }
 
+        const supabaseAdmin = getAdminClient();
         // Step 1: Create the auth user via admin API
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
@@ -22,6 +25,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (authError || !authData?.user) {
+            console.error("Auth Creation Error:", authError);
             return NextResponse.json({ error: authError?.message || 'Failed to create auth user.' }, { status: 500 });
         }
 
@@ -96,6 +100,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, userId });
     } catch (err: unknown) {
+        console.error("Create User API Exception:", err);
         return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
     }
 }

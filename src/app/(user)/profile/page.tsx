@@ -16,15 +16,61 @@ import {
     ArrowUpFromLine,
     FileText,
     Building2,
-    Award
+    Award,
+    Upload,
+    Loader2,
+    Image as ImageIcon,
+    Gift,
+    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfilePage() {
     const { profile, signOut } = useAuth();
     const { t } = useLanguage();
     const { format } = useCurrency();
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !profile?.id) return;
+
+        setUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${profile.id}/${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', profile.id);
+
+            if (updateError) throw updateError;
+            
+            // Refresh logic - assuming Context handles profile refresh
+            window.location.reload(); 
+        } catch (err) {
+            console.error('Avatar upload failed:', err);
+            alert('Upload failed. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const [copied, setCopied] = useState(false);
 
     const copyReferralCode = () => {
@@ -38,14 +84,39 @@ export default function ProfilePage() {
     return (
         <div className="space-y-8 animate-fade-in pb-12">
             
+            {/* Hidden File Input */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleAvatarUpload} 
+                accept="image/*" 
+                className="hidden" 
+            />
+
             {/* Profile Header */}
             <div className="flex items-center gap-6 p-2">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary-light p-1 shadow-lg shadow-primary/20">
-                    <div className="w-full h-full rounded-[20px] bg-surface flex items-center justify-center border border-black/10 dark:border-white/10 overflow-hidden">
-                        <span className="text-3xl font-black text-text-primary">
-                            {profile?.username?.[0].toUpperCase() || 'U'}
-                        </span>
+                <div 
+                    onClick={() => !uploading && fileInputRef.current?.click()}
+                    className={`w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary-light p-1 shadow-lg shadow-primary/20 cursor-pointer group relative transition-transform active:scale-95 ${uploading ? 'opacity-70' : ''}`}
+                >
+                    <div className="w-full h-full rounded-[20px] bg-surface flex items-center justify-center border border-black/10 dark:border-white/10 overflow-hidden bg-black/40">
+                        {(profile as any)?.avatar_url ? (
+                            <img src={(profile as any).avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-3xl font-black text-text-primary">
+                                {profile?.username?.[0].toUpperCase() || 'U'}
+                            </span>
+                        )}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity gap-1">
+                            <Upload size={18} className="text-white" />
+                            <span className="text-[8px] font-black text-white uppercase tracking-tighter">Edit</span>
+                        </div>
                     </div>
+                    {uploading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl">
+                            <Loader2 className="animate-spin text-white" size={24} />
+                        </div>
+                    )}
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">{profile?.username || 'User'}</h2>
@@ -62,13 +133,13 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
                 <div className="glass-card p-6 border-l-4 border-l-primary relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full" />
-                    <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">{t('balance')}</p>
-                    <p className="text-2xl font-black text-text-primary">{format(profile?.wallet_balance ?? 0)}</p>
+                    <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.25em] mb-1 opacity-60">{t('balance')}</p>
+                    <p className="text-3xl font-black text-text-primary tracking-tighter">{format(profile?.wallet_balance ?? 0)}</p>
                 </div>
                 <div className="glass-card p-6 border-l-4 border-l-accent relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-16 h-16 bg-accent/5 rounded-bl-full" />
-                    <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">{t('total_profit')}</p>
-                    <p className="text-2xl font-black text-text-primary">{format(profile?.profit ?? 0)}</p>
+                    <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.25em] mb-1 opacity-60">{t('total_profit')}</p>
+                    <p className="text-3xl font-black text-text-primary tracking-tighter">{format(profile?.total_profit ?? 0)}</p>
                 </div>
             </div>
 
@@ -87,6 +158,24 @@ export default function ProfilePage() {
                     <span className="font-bold text-sm text-text-primary tracking-wide uppercase">{t('withdraw')}</span>
                 </Link>
             </div>
+
+            {/* Rewards Card */}
+            <Link 
+                href="/rewards/first-deposit"
+                className="glass-card-strong p-5 bg-gradient-to-r from-primary/20 via-primary/5 to-accent/20 border-primary/30 flex items-center justify-between group overflow-hidden relative"
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary-light group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
+                        <Gift size={24} className="animate-pulse" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-black text-text-primary uppercase tracking-tight">First Deposit Reward</h4>
+                        <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest opacity-60 mt-0.5">Claim up to 2000 USDT bonus</p>
+                    </div>
+                </div>
+                <ArrowRight size={20} className="text-primary-light group-hover:translate-x-1.5 transition-all" />
+            </Link>
 
             {/* Activity & Records */}
             <div>

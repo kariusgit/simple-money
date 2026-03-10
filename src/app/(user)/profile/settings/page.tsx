@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 export default function SettingsPage() {
     const { profile, user, refreshProfile } = useAuth();
     const { theme, toggleTheme } = useTheme();
-    const { t, setLanguage: updateContextLanguage } = useLanguage();
+    const { t, availableLanguages, setLanguage: updateContextLanguage } = useLanguage();
     const { setCurrency: updateContextCurrency } = useCurrency();
     const [notifications, setNotifications] = useState(true);
     
@@ -311,7 +311,7 @@ export default function SettingsPage() {
 
                         {activeModal === 'language' && (
                             <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[300px] pr-1">
-                                {['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'].map((opt) => (
+                                {availableLanguages.map((opt) => (
                                     <button 
                                         key={opt}
                                         onClick={() => { handleUpdateProfileSetting('language', opt); setActiveModal(null); }}

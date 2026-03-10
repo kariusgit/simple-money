@@ -50,9 +50,9 @@ const TransactionDetailModal = ({ tx, onClose }: { tx: Transaction; onClose: () 
                             <span className="text-white font-black">{new Date(tx.created_at).toLocaleString()}</span>
                         </div>
                         {tx.wallet_address && (
-                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                                <span className="text-text-secondary">Wallet</span>
-                                <span className="text-white font-black font-mono truncate max-w-[150px] ml-4">{tx.wallet_address}</span>
+                            <div className="flex flex-col gap-2 p-3 bg-white/5 rounded-xl border border-white/10">
+                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Target Wallet</span>
+                                <span className="text-xs md:text-sm text-white font-black font-mono break-all leading-tight">{tx.wallet_address}</span>
                             </div>
                         )}
                         <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
@@ -130,7 +130,7 @@ export default function WithdrawRecordPage() {
                     <Link href="/profile" className="p-2 -ml-2 hover:bg-text-primary/10 rounded-full transition-colors group">
                         <ArrowLeft className="text-text-primary group-hover:text-danger transition-colors" />
                     </Link>
-                    <h1 className="text-xl font-bold text-text-primary tracking-wide">Withdrawal Record</h1>
+                    <h1 className="text-xl font-bold text-text-primary tracking-wide">Withdrawal record</h1>
                     <div className="w-10" />
                 </div>
 

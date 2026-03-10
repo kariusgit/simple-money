@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -20,6 +20,10 @@ const COUNTRY_CODES = [
 ];
 
 export default function SignupPage() {
+    return <OldSignupPage />;
+}
+
+function OldSignupPage() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         username: '',
@@ -28,7 +32,7 @@ export default function SignupPage() {
         password: '',
         confirmPassword: '',
         referralCode: '',
-        acceptTerms: false,
+        acceptTerms: true,
     });
     const [signupMode, setSignupMode] = useState<'password' | 'magic'>('password');
     const [countryCode, setCountryCode] = useState(COUNTRY_CODES[0]);
@@ -319,7 +323,7 @@ export default function SignupPage() {
                                                     onChange={handleChange}
                                                     placeholder={formData.phone.startsWith('+') ? "+Manual Entry" : "000 000 000"}
                                                     className="input-field flex-1 min-w-0 font-medium"
-                                                    required={signupMode !== 'magic'}
+                                                    required
                                                 />
                                             </div>
                                         </div>
@@ -440,13 +444,20 @@ export default function SignupPage() {
                         </form>
                     )}
 
-                    <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                    <div className="mt-8 pt-6 border-t border-white/5 text-center flex flex-col items-center gap-3">
                         <p className="text-text-secondary text-xs font-medium">
                             Already have an account?{' '}
-                            <Link href="/login" className="text-primary-light hover:text-accent-light transition-colors font-black uppercase tracking-widest ml-1">
+                            <Link href="/login" className="text-primary-light hover:text-accent-light transition-colors font-black uppercase tracking-widest ml-1 underline underline-offset-4">
                                 Sign In
                             </Link>
                         </p>
+                        <button 
+                            type="button"
+                            onClick={() => (window as any).Tawk_API?.maximize()}
+                            className="text-text-secondary/50 text-[10px] font-bold hover:text-primary-light transition-colors uppercase tracking-[0.2em]"
+                        >
+                            Need Help? Contact Customer Service
+                        </button>
                     </div>
                 </div>
 

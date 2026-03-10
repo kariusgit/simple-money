@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -44,8 +44,21 @@ export default function LoginPage() {
     const [resetEmail, setResetEmail] = useState('');
     const [resetSent, setResetSent] = useState(false);
     const [resetLoading, setResetLoading] = useState(false);
-    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [acceptTerms, setAcceptTerms] = useState(true);
     const router = useRouter();
+    
+    // Auto-logout when accessing the login page to ensure fresh session
+    useEffect(() => {
+        const cleanupSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await supabase.auth.signOut();
+                router.refresh(); 
+            }
+        };
+        cleanupSession();
+    }, [router]);
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,17 +74,19 @@ export default function LoginPage() {
                 if (normalizedIdentifier.includes('@')) {
                     emailToUse = normalizedIdentifier;
                 } else {
-                    // It's a username - look up email
-                    const { data: profile, error: lookupErr } = await supabase
-                        .from('profiles')
-                        .select('email')
-                        .ilike('username', normalizedIdentifier)
-                        .maybeSingle();
-
-                    if (lookupErr || !profile?.email) {
+                    // It's a username - look up email securely via API
+                    const lookupRes = await fetch('/api/auth/lookup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier: normalizedIdentifier, type: 'username' })
+                    });
+                    
+                    if (!lookupRes.ok) {
                         throw new Error('No account found with this username.');
                     }
-                    emailToUse = profile.email;
+                    
+                    const lookupData = await lookupRes.json();
+                    emailToUse = lookupData.email;
                 }
             } else if (method === 'id') {
                 // Phone Number ONLY mode
@@ -82,13 +97,19 @@ export default function LoginPage() {
                     ? normalizedIdentifier
                     : `${countryCode.code}${normalizedIdentifier.replace(/\D/g, '')}`;
 
-                query = query.eq('phone', fullPhone);
-                const { data: profileData, error: profileError } = await query.maybeSingle();
+                // Look up email securely via API
+                const lookupRes = await fetch('/api/auth/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: fullPhone, type: 'phone' })
+                });
 
-                if (profileError || !profileData?.email) {
+                if (!lookupRes.ok) {
                     throw new Error('No account found with this Phone Number.');
                 }
-                emailToUse = profileData.email;
+                
+                const lookupData = await lookupRes.json();
+                emailToUse = lookupData.email;
             }
 
             // Attempt Sign In
@@ -103,28 +124,6 @@ export default function LoginPage() {
                     throw new Error('Please check your email and confirm your account before logging in.');
                 }
 
-                // 2. Auto-Provision Admin Account (admin@test.com)
-                if (emailToUse === 'admin@test.com' && signInError.message.toLowerCase().includes('invalid login credentials')) {
-                    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-                        email: emailToUse,
-                        password,
-                        options: { data: { username: 'Admin Test' } }
-                    });
-
-                    if (signUpErr) throw signUpErr;
-
-                    if (signUpData.user) {
-                        // Check if session was auto-created (confirmation disabled) or not
-                        if (signUpData.session) {
-                            await supabase.from('profiles').update({ role: 'admin' }).eq('id', signUpData.user.id);
-                            router.push('/dashboard-alpha');
-                            return;
-                        } else {
-                            throw new Error('Admin account created! Please CONFIRM the email (check dashboard if local) to activate it.');
-                        }
-                    }
-                }
-
                 throw signInError;
             }
 
@@ -137,13 +136,9 @@ export default function LoginPage() {
                     .single();
 
                 // Role Redirection
-                const isAdmin = profileData?.role === 'admin' ||
-                    signInData.user.email === 'amoafop08@gmail.com' ||
-                    signInData.user.email === 'admin@test.com';
+                const isAdmin = profileData?.role === 'admin';
 
-                if (isAdmin && profileData?.role !== 'admin') {
-                    await supabase.from('profiles').update({ role: 'admin' }).eq('id', signInData.user.id);
-                }
+
 
                 router.push(isAdmin ? '/dashboard-alpha' : '/home');
                 router.refresh(); // Ensure context updates
@@ -174,18 +169,20 @@ export default function LoginPage() {
         try {
             let emailToUse = input;
 
-            // If it's not an email, assume it's a username and look it up
+            // If it's not an email, assume it's a username and look it up securely via API
             if (!input.includes('@')) {
-                const { data, error: lookupError } = await supabase
-                    .from('profiles')
-                    .select('email')
-                    .ilike('username', input)
-                    .maybeSingle();
+                const lookupRes = await fetch('/api/auth/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: input, type: 'username' })
+                });
 
-                if (lookupError || !data?.email) {
+                if (!lookupRes.ok) {
                     throw new Error('No account found with this username.');
                 }
-                emailToUse = data.email;
+                
+                const lookupData = await lookupRes.json();
+                emailToUse = lookupData.email;
             }
 
             const { error } = await supabase.auth.signInWithOtp({
@@ -469,13 +466,27 @@ export default function LoginPage() {
                                 )}
                             </form>
 
-                            <div className="mt-6 text-center">
-                                <p className="text-text-secondary text-sm">
+                            <div className="mt-8 text-center space-y-5">
+                                <p className="text-text-secondary text-sm font-medium">
                                     Don&apos;t have an account?{' '}
-                                    <Link href="/signup" className="text-primary-light hover:text-accent-light transition-colors font-semibold">
-                                        Sign Up
+                                    <Link href="/signup" className="text-primary-light font-black hover:text-accent-light transition-all uppercase tracking-widest text-[11px] underline underline-offset-4 ml-1">
+                                         Sign Up
                                     </Link>
                                 </p>
+                                
+                                <div className="flex items-center gap-3">
+                                    <div className="h-px bg-white/5 flex-1"></div>
+                                    <span className="text-[10px] text-text-secondary/30 font-bold uppercase tracking-widest">or</span>
+                                    <div className="h-px bg-white/5 flex-1"></div>
+                                </div>
+
+                                <button 
+                                    type="button"
+                                    onClick={() => (window as any).Tawk_API?.maximize()}
+                                    className="w-full py-3.5 rounded-xl bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                >
+                                    Contact Customer Service
+                                </button>
                             </div>
                         </>
                     ) : resetSent ? (

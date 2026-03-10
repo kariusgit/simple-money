@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useSiteSettings } from './SettingsContext';
 import { supabase } from '@/lib/supabase';
 
 export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
@@ -31,16 +32,26 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     const { profile } = useAuth();
+    const { currency: backendCurrency, loading } = useSiteSettings();
     const [currentCurrency, setCurrentCurrency] = useState<Currency>(currencies.USD);
 
     useEffect(() => {
+        if (loading) return;
+        
+        // If the admin has defined a global override, use it as default
+        const defaultCurrency = backendCurrency?.default && currencies[backendCurrency.default as CurrencyCode] 
+            ? { ...currencies[backendCurrency.default as CurrencyCode], symbol: backendCurrency.symbol || currencies[backendCurrency.default as CurrencyCode].symbol }
+            : currencies.USD;
+
         const savedCurrency = localStorage.getItem('currency') as CurrencyCode;
         if (savedCurrency && currencies[savedCurrency]) {
             setCurrentCurrency(currencies[savedCurrency]);
         } else if (profile?.currency && currencies[profile.currency as CurrencyCode]) {
             setCurrentCurrency(currencies[profile.currency as CurrencyCode]);
+        } else {
+            setCurrentCurrency(defaultCurrency);
         }
-    }, [profile?.currency]);
+    }, [profile?.currency, backendCurrency, loading]);
 
     const handleSetCurrency = async (code: CurrencyCode) => {
         if (currencies[code]) {
