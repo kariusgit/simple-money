@@ -35,7 +35,7 @@ export default function BundledPackageModal({
     if (!isOpen || !bundle) return null;
 
     return (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl transition-all duration-300">
+        <div className="absolute inset-0 z-[10001] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl transition-all duration-300">
             <div
                 className="bg-surface dark:bg-[#0f0a15] w-full max-w-sm max-h-[85vh] rounded-[40px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] border border-amber-500/20 animate-fade-in relative flex flex-col"
                 onClick={(e) => e.stopPropagation()}

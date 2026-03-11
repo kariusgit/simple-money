@@ -648,6 +648,109 @@ export default function StartPage() {
                             <span className="text-[8px] md:text-[9px] font-black text-text-secondary uppercase tracking-[0.25em] opacity-50">{t('neural_active')}</span>
                         </div>
                     </div>
+
+                    {/* MODALS ANCHORED TO GRID */}
+                    <ItemDetailModal
+                        item={selectedItem}
+                        isOpen={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        onSubmit={handleSubmitTask}
+                        balance={profile?.wallet_balance || 0}
+                        commissionRate={commissionRate}
+                        format={format}
+                        isSubmitting={isSubmitting}
+                    />
+                    <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
+
+                    {showMinBalanceModal && (
+                        <div className="absolute inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
+                            <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
+                                <button
+                                    onClick={() => setShowMinBalanceModal(false)}
+                                    className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                                >
+                                    <X size={24} />
+                                </button>
+                                <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
+                                    <AlertTriangle size={40} className="text-danger" />
+                                    <div className="absolute inset-0 rounded-full border border-danger animate-ping opacity-20" />
+                                </div>
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
+                                    Access Denied
+                                </h2>
+                                <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
+                                    Minimum amount required to start task is $65
+                                </span>
+
+                                <div className="space-y-4 mb-8">
+                                    <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider opacity-60">
+                                        Your balance of {format(profile?.wallet_balance || 0)} is below the node activation threshold.
+                                    </p>
+                                </div>
+
+                                <Link
+                                    href="/deposit"
+                                    className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
+                                >
+                                    Refill Balance <ArrowRight size={18} />
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+
+                    {showCompletionModal && (
+                        <div className="absolute inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
+                            <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
+                                <button
+                                    onClick={handleConfirmSettlement}
+                                    className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                                >
+                                    <X size={24} />
+                                </button>
+                                <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
+                                    <CheckCircle size={40} className="text-success" />
+                                    <div className="absolute inset-0 rounded-full border border-success animate-ping opacity-20" />
+                                </div>
+                                <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">
+                                    {t('task_result')}
+                                </h2>
+                                <span className="text-success font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
+                                    {isAllSetsDone
+                                        ? 'Daily Optimization Cycle Finished • Contact the Concierge Desk for assistance'
+                                        : 'Set Sequence Completed • Contact the Concierge Desk to unlock next set'}
+                                </span>
+
+                                <div className="space-y-4 mb-2">
+                                    <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
+                                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
+                                        <span className="text-sm font-black text-text-primary">{format(profile?.wallet_balance || 0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
+                                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('total_commissions')}</span>
+                                        <span className="text-sm font-black text-success">+{format(profile?.profit || 0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showPendingWarning && (
+                        <div className="absolute inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in">
+                            <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
+                                <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
+                                    <AlertTriangle size={40} className="text-danger" />
+                                </div>
+                                <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
+                                <p className="text-danger-light font-black text-[10px] uppercase tracking-[0.2em] mb-6">{t('negative_balance_detected')}</p>
+                                <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider mb-8 opacity-60">
+                                    Your account is currently locked due to an active bundle deficit. Optimization services are suspended until settlement.
+                                </p>
+                                <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">
+                                    {t('settlement_portal')} <ArrowRight size={18} />
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -660,93 +763,6 @@ export default function StartPage() {
                     </p>
                 </div>
             </div>
-
-            <ItemDetailModal
-                item={selectedItem}
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSubmit={handleSubmitTask}
-                balance={profile?.wallet_balance || 0}
-                commissionRate={commissionRate}
-                format={format}
-                isSubmitting={isSubmitting}
-            />
-            <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
-
-
-            {/* Bundle toast is handled in the main toast container below */}
-
-            {showMinBalanceModal && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
-                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
-                        <button
-                            onClick={() => setShowMinBalanceModal(false)}
-                            className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                        >
-                            <X size={24} />
-                        </button>
-                        <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
-                            <AlertTriangle size={40} className="text-danger" />
-                            <div className="absolute inset-0 rounded-full border border-danger animate-ping opacity-20" />
-                        </div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-                            Access Denied
-                        </h2>
-                        <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
-                            Minimum amount required to start task is $65
-                        </span>
-
-                        <div className="space-y-4 mb-8">
-                            <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider opacity-60">
-                                Your balance of {format(profile?.wallet_balance || 0)} is below the node activation threshold.
-                            </p>
-                        </div>
-
-                        <Link
-                            href="/deposit"
-                            className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
-                        >
-                            Refill Balance <ArrowRight size={18} />
-                        </Link>
-                    </div>
-                </div>
-            )}
-
-            {showCompletionModal && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
-                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
-                        <button
-                            onClick={handleConfirmSettlement}
-                            className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                        >
-                            <X size={24} />
-                        </button>
-                        <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
-                            <CheckCircle size={40} className="text-success" />
-                            <div className="absolute inset-0 rounded-full border border-success animate-ping opacity-20" />
-                        </div>
-                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">
-                            {t('task_result')}
-                        </h2>
-                        <span className="text-success font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
-                            {isAllSetsDone
-                                ? 'Daily Optimization Cycle Finished • Contact the Concierge Desk for assistance'
-                                : 'Set Sequence Completed • Contact the Concierge Desk to unlock next set'}
-                        </span>
-
-                        <div className="space-y-4 mb-2">
-                            <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
-                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
-                                <span className="text-sm font-black text-text-primary">{format(profile?.wallet_balance || 0)}</span>
-                            </div>
-                            <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
-                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('total_commissions')}</span>
-                                <span className="text-sm font-black text-success">+{format(profile?.profit || 0)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <div className="fixed top-[62%] inset-x-0 z-[1000] flex justify-center pointer-events-none px-4">
                 <div className="w-full max-w-sm flex flex-col gap-3">
@@ -786,23 +802,6 @@ export default function StartPage() {
                     )}
                 </div>
             </div>
-            {showPendingWarning && (
-                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in">
-                    <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
-                        <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
-                            <AlertTriangle size={40} className="text-danger" />
-                        </div>
-                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
-                        <p className="text-danger-light font-black text-[10px] uppercase tracking-[0.2em] mb-6">{t('negative_balance_detected')}</p>
-                        <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider mb-8 opacity-60">
-                            Your account is currently locked due to an active bundle deficit. Optimization services are suspended until settlement.
-                        </p>
-                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">
-                            {t('settlement_portal')} <ArrowRight size={18} />
-                        </Link>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

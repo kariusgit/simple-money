@@ -45,7 +45,7 @@ export default function ItemDetailModal({
 
     return (
         <div
-            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300"
+            className="absolute inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300"
             onClick={onClose}
         >
             <div
