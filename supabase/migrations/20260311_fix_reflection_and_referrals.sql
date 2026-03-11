@@ -1,7 +1,12 @@
--- Migration: Secure Task Completion (Auto-Value Logic)
--- This ensures normal tasks save their value and referral bonuses 20% work perfectly.
+-- Migration: Stabilize RPC Signature & Sync Value Logic
+-- 1. DROP the old function first to avoid signature conflicts in the schema cache
+DROP FUNCTION IF EXISTS public.complete_user_task(INT);
+DROP FUNCTION IF EXISTS public.complete_user_task(INT, DECIMAL);
 
-CREATE OR REPLACE FUNCTION public.complete_user_task(p_task_item_id INT)
+CREATE OR REPLACE FUNCTION public.complete_user_task(
+    p_task_item_id INT, 
+    p_cost_amount DECIMAL(12,2) DEFAULT NULL
+)
 RETURNS json AS $$
 DECLARE
     v_user_id UUID;
@@ -97,11 +102,15 @@ BEGIN
             RAISE EXCEPTION 'Minimum balance required to start task is $65.';
         END IF;
 
-        -- Generate value internally (Matches UI math)
-        v_random_price := (v_wallet_balance * (0.40 + random() * 0.45));
-        IF v_random_price < 50 AND v_wallet_balance >= 65 THEN v_random_price := v_wallet_balance * 0.8; END IF;
+        -- SYNC: Use provided amount or generate internal
+        IF p_cost_amount IS NOT NULL AND p_cost_amount > 0 THEN
+            v_cost_amount := p_cost_amount;
+        ELSE
+            v_random_price := (v_wallet_balance * (0.40 + random() * 0.45));
+            IF v_random_price < 50 AND v_wallet_balance >= 65 THEN v_random_price := v_wallet_balance * 0.8; END IF;
+            v_cost_amount := v_random_price;
+        END IF;
         
-        v_cost_amount := v_random_price;
         v_earned_amount := ROUND((v_cost_amount * v_commission_rate), 2);
     END IF;
 
@@ -156,7 +165,7 @@ BEGIN
         IF v_ref_bonus > 0 THEN
             UPDATE public.profiles SET wallet_balance = wallet_balance + v_ref_bonus WHERE id = v_referrer_id;
             INSERT INTO public.transactions (user_id, type, amount, description, status)
-            VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Team Optimization Reward (20%)', 'approved');
+            VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Neural Optimization Dividend (20%)', 'approved');
             INSERT INTO public.notifications (user_id, title, message, type)
             VALUES (v_referrer_id, 'Bonus Received! 🎉', 'Earned $' || v_ref_bonus || ' from teammate optimization.', 'success');
         END IF;

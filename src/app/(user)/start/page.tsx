@@ -50,6 +50,16 @@ export default function StartPage() {
     const [showBundleSuccessToast, setShowBundleSuccessToast] = useState(false);
     const [hasPendingTask, setHasPendingTask] = useState(false);
 
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (modalOpen || bundleModal || showCompletionModal || showMinBalanceModal || showPendingWarning) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [modalOpen, bundleModal, showCompletionModal, showMinBalanceModal, showPendingWarning]);
+
     // Dynamic Progress Logic
     const [tasksPerSet, setTasksPerSet] = useState(40);
     const [setsPerDay, setSetsPerDay] = useState(3);
@@ -75,6 +85,7 @@ export default function StartPage() {
 
     // Consolidated Data Load (Optimized)
     useEffect(() => {
+        window.scrollTo(0, 0); // Reset scroll on page load
         const loadPageData = async () => {
             if (!profile?.level_id || !profile?.id) return;
             setIsLoadingData(true);
@@ -347,11 +358,12 @@ export default function StartPage() {
         }
 
         setIsSubmitting(true);
-        console.log("Submitting optimization for system ID:", item.id);
+        console.log("Submitting optimization for system ID:", item.id, "Synced Value:", costAmount);
 
         try {
             const { data, error } = await supabase.rpc('complete_user_task', {
-                p_task_item_id: item.id
+                p_task_item_id: item.id,
+                p_cost_amount: costAmount
             });
 
             if (error) {

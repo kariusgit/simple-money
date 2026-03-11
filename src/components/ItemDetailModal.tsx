@@ -70,7 +70,7 @@ export default function ItemDetailModal({
 
             {/* Modal Container */}
             <div
-                className="relative w-full max-w-[360px] h-auto max-h-[90vh] glass-card-strong overflow-y-auto animate-bounce-in border border-black/5 dark:border-white/10 shadow-2xl rounded-[32px] z-10 flex flex-col mt-[58%] md:mt-[15%]"
+                className="relative w-full max-w-[360px] h-auto max-h-[90vh] glass-card-strong overflow-y-auto animate-bounce-in border border-black/5 dark:border-white/10 shadow-2xl rounded-[32px] z-10 flex flex-col mt-[25%] md:mt-[10%]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Background Decoration */}

@@ -61,7 +61,7 @@ export default function BundledPackageModal({ isOpen, bundle, onAccept }: Bundle
 
             {/* Modal Container */}
             <div
-                className="relative w-full max-w-[360px] glass-card-glow animate-bounce-in border border-amber-500/30 shadow-[0_0_80px_rgba(245,158,11,0.4)] rounded-[40px] z-10 flex flex-col mt-[58%] md:mt-[15%]"
+                className="relative w-full max-w-[360px] glass-card-glow animate-bounce-in border border-amber-500/30 shadow-[0_0_80px_rgba(245,158,11,0.4)] rounded-[40px] z-10 flex flex-col mt-[25%] md:mt-[10%]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Premium Background Effects */}

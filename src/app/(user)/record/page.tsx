@@ -40,6 +40,7 @@ export default function RecordPage() {
     };
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         fetchTasks();
     }, [profile]);
 
