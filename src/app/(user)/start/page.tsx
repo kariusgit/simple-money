@@ -361,7 +361,7 @@ export default function StartPage() {
             }
 
             // 1. Show local feedback via Toast/Profit State IMMEDIATELY
-            const earnedAmount = data?.earned_amount || 0;
+            const earnedAmount = data?.earned_amount ? Number(data.earned_amount) : 0;
             const newBalance = data?.new_balance || profile.wallet_balance;
             const isBundleResult = data?.is_bundle || false;
 
