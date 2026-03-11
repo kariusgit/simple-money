@@ -85,7 +85,7 @@ BEGIN
     END IF;
 
     -- BUNDLE LOGIC
-    IF v_pending_bundle IS NOT NULL THEN
+    IF v_pending_bundle IS NOT NULL AND (v_tasks_in_current_set + 1) = (v_pending_bundle->>'targetIndex')::INT THEN
         v_random_price := (v_pending_bundle->>'totalAmount')::DECIMAL;
         v_earned_amount := (v_pending_bundle->>'bonusAmount')::DECIMAL;
         v_is_bundle_task := true;
