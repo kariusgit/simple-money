@@ -397,7 +397,7 @@ export default function StartPage() {
         if ((window as any).Tawk_API && (window as any).Tawk_API.maximize) {
             (window as any).Tawk_API.maximize();
         } else {
-            router.push('/support');
+            router.push('/service');
         }
         setShowCompletionModal(false);
     };

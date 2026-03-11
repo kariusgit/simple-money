@@ -46,12 +46,12 @@ const channels = [
 export default function CustomerServicePage() {
     return (
         <div className="max-w-4xl mx-auto pb-20 animate-fade-in space-y-10">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-black text-white uppercase tracking-tight">Concierge Desk</h1>
-                    <p className="text-text-secondary text-xs mt-1 font-bold uppercase tracking-widest font-mono opacity-60">Operations & Support Hub</p>
+                    <h1 className="text-2xl font-black text-white uppercase tracking-tight">Concierge Hub</h1>
+                    <p className="text-text-secondary text-xs mt-1 font-bold uppercase tracking-widest font-mono opacity-60">Operations & Support Gateway</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_8px_var(--color-success)]" />
@@ -61,11 +61,11 @@ export default function CustomerServicePage() {
 
             {/* Support Hero Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
+
                 {/* Main Hero Card */}
                 <div className="md:col-span-2 glass-card-strong p-10 relative overflow-hidden flex flex-col justify-between border-primary/20">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-                    
+
                     <div className="relative z-10 space-y-6">
                         <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-2xl">
                             <HeadphonesIcon size={32} className="text-white" />
@@ -117,7 +117,7 @@ export default function CustomerServicePage() {
                 {channels.map((c, idx) => {
                     const isTawk = c.action === TAWK_TO_LINK;
                     const Component = isTawk ? 'button' : 'a';
-                    const props = isTawk 
+                    const props = isTawk
                         ? { onClick: () => (window as any).Tawk_API?.maximize() }
                         : { href: c.action, target: c.target };
 
@@ -150,10 +150,10 @@ export default function CustomerServicePage() {
 
             {/* Quick Resolution Notice */}
             <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[30px] flex items-center justify-center gap-3">
-                 <Zap size={14} className="text-primary-light" />
-                 <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-50">
+                <Zap size={14} className="text-primary-light" />
+                <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-50">
                     Pro-tip: Check the <Link href="/faq" className="text-primary-light hover:underline">Knowledge Base</Link> for instant resolutions to common challenges.
-                 </p>
+                </p>
             </div>
 
         </div>

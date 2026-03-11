@@ -230,7 +230,7 @@ export default function RecordPage() {
                                     {task.status === 'pending' && (
                                         profile && profile.wallet_balance < 0 ? (
                                             <button
-                                                onClick={() => router.push('/support')}
+                                                onClick={() => router.push('/service')}
                                                 className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
                                             >
                                                 <Headset size={10} />
