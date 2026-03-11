@@ -118,12 +118,9 @@ export default function StartPage() {
                 const usedItemIds = (pastTasksRes.data || []).map(t => t.task_item_id);
                 let availableItems = (itemsRes.data || []).filter(item => !usedItemIds.includes(item.id));
 
-                // FALLBACK: If all products for this level are used, cycle back to the beginning of the pool
-                // This prevents "shortages" when admins assign many multi-product bundles
                 if (availableItems.length === 0 && itemsRes.data && itemsRes.data.length > 0) {
                     availableItems = itemsRes.data;
                 } else if (availableItems.length === 0) {
-                    // Final fallback with realistic naming examples if no DB items found
                     availableItems = Array.from({ length: 24 }).map((_, i) => ({
                         id: `fallback-${i}`,
                         title: i % 2 === 0 ? 'Premium electronics hub' : 'Luxury timepiece collection',
@@ -138,7 +135,6 @@ export default function StartPage() {
                 const selectedItems = shuffled.slice(0, 24);
                 setItems(selectedItems);
 
-                // Proactive image preloading
                 selectedItems.forEach(item => {
                     const img = new Image();
                     img.src = item.image_url;
@@ -153,7 +149,6 @@ export default function StartPage() {
         loadPageData();
     }, [profile?.level_id, profile?.id]);
 
-    // Rapid Spin Effect
     useEffect(() => {
         let spinInterval: NodeJS.Timeout;
         if (isSpinning) {
@@ -162,14 +157,13 @@ export default function StartPage() {
                     const next = Math.floor(Math.random() * items.length);
                     return next === prev && items.length > 1 ? (next + 1) % items.length : next;
                 });
-            }, 40); // Faster spinning for 5x5
+            }, 40);
         } else if (!selectedItem) {
             setHighlightedIndex(null);
         }
         return () => clearInterval(spinInterval);
     }, [isSpinning, items.length, selectedItem]);
 
-    // Proactive Messaging Logic
     useEffect(() => {
         if (hasPendingTask) {
             setMatchingStatus("You have a pending order");
@@ -244,17 +238,14 @@ export default function StartPage() {
 
         setTimeout(async () => {
             clearInterval(stageInterval);
-
-            // 1. Check for Pending Bundle strictly by Index
             const { data: freshProfile } = await supabase.from('profiles').select('*').eq('id', profile?.id).single();
             const pb = (freshProfile as any)?.pending_bundle;
-            const currentItemIndex = tasksInCurrentSet + 1; // 1-based index for the current task
+            const currentItemIndex = tasksInCurrentSet + 1;
 
             let finalIndex = Math.floor(Math.random() * items.length);
             let matchedItem = { ...items[finalIndex] };
 
             if (pb && Number(pb.targetIndex) === currentItemIndex) {
-                // FORCE the landing on the bundle item
                 if (pb.taskItem) {
                     matchedItem = {
                         id: Number(pb.taskItemIds?.[0] || 0),
@@ -264,25 +255,11 @@ export default function StartPage() {
                         level_id: profile?.level_id || 1
                     } as TaskItem;
 
-                    // Inject into items array visually so the highlight matches
                     const newItems = [...items];
                     newItems[finalIndex] = matchedItem;
                     setItems(newItems);
                 }
-            } else if (pb) {
-                // Ensure we DON'T land on a bundle item randomly if it's not the target index
-                const bundleIds = Array.isArray(pb.taskItemIds) ? pb.taskItemIds : [];
-                if (bundleIds.includes(matchedItem.id)) {
-                    const safeItems = items.filter(item => !bundleIds.includes(item.id));
-                    if (safeItems.length > 0) {
-                        const safeIdx = Math.floor(Math.random() * safeItems.length);
-                        matchedItem = { ...safeItems[safeIdx] };
-                        finalIndex = items.findIndex(item => item.id === matchedItem.id);
-                        if (finalIndex === -1) finalIndex = 0; // Fallback
-                    }
-                }
             }
-
             setHighlightedIndex(finalIndex);
             setIsSpinning(false);
             setMatchingStatus(t('match_found'));
@@ -292,8 +269,6 @@ export default function StartPage() {
 
     const handleTaskSelection = async (item: TaskItem, pb?: any, currentItemIndex?: number) => {
         if (!profile || isLocked) return;
-
-        // Use passed-in bundle or fetch fresh
         let bundle = pb;
         if (!bundle) {
             const { data: freshProfile } = await supabase.from('profiles').select('*').eq('id', profile.id).single();
@@ -317,10 +292,8 @@ export default function StartPage() {
             });
             setBundleModal(true);
 
-            // Cleanup the bundle after trigger
             if (remainingIds.length === 0) await supabase.from('profiles').update({ pending_bundle: null }).eq('id', profile.id);
             else await supabase.from('profiles').update({ pending_bundle: { ...bundle, taskItemIds: remainingIds } }).eq('id', profile.id);
-
             await refreshProfile();
             return;
         }
@@ -331,46 +304,16 @@ export default function StartPage() {
 
     const handleSubmitTask = async (item: TaskItem, costAmount?: number) => {
         if (isSubmitting) return;
-
-        // Detailed check for return reasons
-        if (!profile) {
-            alert("Session lost. Please log in again.");
-            router.push('/login');
-            return;
-        }
-
-        if (profile.wallet_balance < 0) {
-            setShowPendingWarning(true);
-            return;
-        }
-
-        if (isLocked) {
-            const msg = isAllSetsDone
-                ? t('daily_limit_reached')
-                : t('set_complete_contact_support').replace('{set}', String(currentSet));
-            alert(msg);
-            return;
-        }
+        if (!profile) { router.push('/login'); return; }
+        if (profile.wallet_balance < 0) { setShowPendingWarning(true); return; }
 
         setIsSubmitting(true);
-        console.log("Submitting optimization for system ID:", item.id, "Synced Value:", costAmount);
-
         try {
-            const { data, error } = await supabase.rpc('complete_user_task', {
-                p_task_item_id: item.id
-            });
+            const { data, error } = await supabase.rpc('complete_user_task', { p_task_item_id: item.id });
+            if (error) throw error;
 
-            if (error) {
-                console.error("RPC Error Details:", error);
-                throw error;
-            }
-
-            // 1. Show local feedback via Toast/Profit State IMMEDIATELY
             const earnedAmount = data?.earned_amount ? Number(data.earned_amount) : 0;
-            const newBalance = data?.new_balance || profile.wallet_balance;
             const isBundleResult = data?.is_bundle || false;
-
-            console.log("Submission success data:", data);
 
             if (isBundleResult) {
                 setShowBundleSuccessToast(true);
@@ -384,15 +327,9 @@ export default function StartPage() {
                     setTimeout(() => setShowCompletionModal(true), 1500);
                 }
             }
-
-            // 2. Sync with database
             await refreshProfile();
-            console.log("Profile refreshed successfully");
-
         } catch (err: any) {
-            console.error("Critical Task Submission Error:", err);
-            const errorMsg = err?.message || err?.details || 'Optimization failed.';
-            alert(`Optimization Failure: ${errorMsg}`);
+            alert(`Optimization Failure: ${err?.message || 'Error'}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -402,9 +339,7 @@ export default function StartPage() {
         setModalSeen(true);
         if ((window as any).Tawk_API && (window as any).Tawk_API.maximize) {
             (window as any).Tawk_API.maximize();
-        } else {
-            router.push('/service');
-        }
+        } else { router.push('/service'); }
         setShowCompletionModal(false);
     };
 
@@ -412,25 +347,9 @@ export default function StartPage() {
         if (!profile) return;
         const newBalance = profile.wallet_balance - bundle.totalAmount;
         const newFrozen = profile.frozen_amount + bundle.totalAmount + bundle.bonusAmount;
-
-        await supabase.from('profiles').update({
-            wallet_balance: newBalance,
-            frozen_amount: newFrozen,
-            completed_count: (profile.completed_count || 0) + 1 // INCREMENT so it counts as 1 of the 40 tasks
-        }).eq('id', profile.id);
-
-        await supabase.from('transactions').insert({ user_id: profile.id, type: 'freeze', amount: bundle.totalAmount, description: `Bundle: ${bundle.name}` });
-
+        await supabase.from('profiles').update({ wallet_balance: newBalance, frozen_amount: newFrozen, completed_count: (profile.completed_count || 0) + 1 }).eq('id', profile.id);
         if (pendingTaskItem) {
-            await supabase.from('user_tasks').insert({
-                user_id: profile.id,
-                task_item_id: pendingTaskItem.id,
-                status: 'pending',
-                earned_amount: bundle.bonusAmount,
-                cost_amount: bundle.totalAmount,
-                is_bundle: true,
-                completed_at: new Date().toISOString()
-            });
+            await supabase.from('user_tasks').insert({ user_id: profile.id, task_item_id: pendingTaskItem.id, status: 'pending', earned_amount: bundle.bonusAmount, cost_amount: bundle.totalAmount, is_bundle: true, completed_at: new Date().toISOString() });
             setPendingTaskItem(null);
         }
         setBundleModal(false);
@@ -585,8 +504,7 @@ export default function StartPage() {
             <div className="relative flex flex-col items-center justify-center py-6 md:py-10">
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full md:w-[800px] h-[500px] md:h-[600px] bg-primary/10 rounded-full blur-[100px] md:blur-[160px] transition-opacity duration-1000 ${isSpinning ? 'opacity-100' : 'opacity-40'}`} />
 
-                <div className="w-full max-w-2xl mx-auto space-y-12 relative z-10 px-4">
-                    {/* 5x5 Grid with Center START Button */}
+                <div className="w-full max-w-2xl mx-auto space-y-12 z-10 px-4">
                     <div className="grid grid-cols-5 gap-1.5 md:gap-2">
                         {Array.from({ length: 25 }).map((_, idx) => {
                             if (idx === 12) {
@@ -601,19 +519,13 @@ export default function StartPage() {
                                                 ${(isLocked || (profile?.wallet_balance || 0) < 65 || profile?.pending_bundle) ? 'grayscale opacity-40 !cursor-not-allowed' : ''}
                                             `}
                                         >
-                                            {/* Bubble Water Effect */}
                                             <div className="absolute inset-0 glass-water opacity-90" />
-
-                                            {/* Surface Shine */}
                                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.4)_0%,transparent_60%)] z-10" />
                                             <div className="absolute top-1 left-4 right-4 h-1/4 bg-white/20 blur-md rounded-full z-10" />
-
-                                            {/* Dynamic Liquid Waves */}
                                             <div className={`absolute inset-0 transition-transform duration-1000 ${isSpinning ? 'translate-y-[-20%] rotate-12' : 'translate-y-[60%]'}`}>
                                                 <div className="absolute top-0 left-[-100%] w-[300%] h-[300%] bg-white/10 rounded-[45%] animate-spin-slow" />
                                                 <div className="absolute top-2 left-[-100%] w-[300%] h-[300%] bg-white/5 rounded-[40%] animate-spin-slow opacity-50" style={{ animationDirection: 'reverse' }} />
                                             </div>
-
                                             <div className="relative z-20 flex flex-col items-center text-center">
                                                 <h3 className="text-[11px] md:text-lg font-black text-white uppercase tracking-wider leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                                                     {hasPendingTask ? "Submit Order" : (isLocked ? t('status') : t('start'))}
@@ -638,7 +550,6 @@ export default function StartPage() {
                         })}
                     </div>
 
-                    {/* Status Text Moved Below Grid */}
                     <div className="flex flex-col items-center text-center">
                         <p className={`text-[10px] md:text-xs font-black uppercase tracking-[0.3em] transition-all duration-500 ${isSpinning ? 'text-primary-light animate-pulse' : 'text-text-primary/40'}`}>
                             {matchingStatus || 'System Ready'}
@@ -648,109 +559,6 @@ export default function StartPage() {
                             <span className="text-[8px] md:text-[9px] font-black text-text-secondary uppercase tracking-[0.25em] opacity-50">{t('neural_active')}</span>
                         </div>
                     </div>
-
-                    {/* MODALS ANCHORED TO GRID */}
-                    <ItemDetailModal
-                        item={selectedItem}
-                        isOpen={modalOpen}
-                        onClose={() => setModalOpen(false)}
-                        onSubmit={handleSubmitTask}
-                        balance={profile?.wallet_balance || 0}
-                        commissionRate={commissionRate}
-                        format={format}
-                        isSubmitting={isSubmitting}
-                    />
-                    <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
-
-                    {showMinBalanceModal && (
-                        <div className="absolute inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
-                            <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
-                                <button
-                                    onClick={() => setShowMinBalanceModal(false)}
-                                    className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                                >
-                                    <X size={24} />
-                                </button>
-                                <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
-                                    <AlertTriangle size={40} className="text-danger" />
-                                    <div className="absolute inset-0 rounded-full border border-danger animate-ping opacity-20" />
-                                </div>
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-                                    Access Denied
-                                </h2>
-                                <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
-                                    Minimum amount required to start task is $65
-                                </span>
-
-                                <div className="space-y-4 mb-8">
-                                    <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider opacity-60">
-                                        Your balance of {format(profile?.wallet_balance || 0)} is below the node activation threshold.
-                                    </p>
-                                </div>
-
-                                <Link
-                                    href="/deposit"
-                                    className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
-                                >
-                                    Refill Balance <ArrowRight size={18} />
-                                </Link>
-                            </div>
-                        </div>
-                    )}
-
-                    {showCompletionModal && (
-                        <div className="absolute inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center">
-                            <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
-                                <button
-                                    onClick={handleConfirmSettlement}
-                                    className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                                >
-                                    <X size={24} />
-                                </button>
-                                <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
-                                    <CheckCircle size={40} className="text-success" />
-                                    <div className="absolute inset-0 rounded-full border border-success animate-ping opacity-20" />
-                                </div>
-                                <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">
-                                    {t('task_result')}
-                                </h2>
-                                <span className="text-success font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
-                                    {isAllSetsDone
-                                        ? 'Daily Optimization Cycle Finished • Contact the Concierge Desk for assistance'
-                                        : 'Set Sequence Completed • Contact the Concierge Desk to unlock next set'}
-                                </span>
-
-                                <div className="space-y-4 mb-2">
-                                    <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
-                                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
-                                        <span className="text-sm font-black text-text-primary">{format(profile?.wallet_balance || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
-                                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('total_commissions')}</span>
-                                        <span className="text-sm font-black text-success">+{format(profile?.profit || 0)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {showPendingWarning && (
-                        <div className="absolute inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in">
-                            <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
-                                <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
-                                    <AlertTriangle size={40} className="text-danger" />
-                                </div>
-                                <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
-                                <p className="text-danger-light font-black text-[10px] uppercase tracking-[0.2em] mb-6">{t('negative_balance_detected')}</p>
-                                <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider mb-8 opacity-60">
-                                    Your account is currently locked due to an active bundle deficit. Optimization services are suspended until settlement.
-                                </p>
-                                <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">
-                                    {t('settlement_portal')} <ArrowRight size={18} />
-                                </Link>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -764,44 +572,75 @@ export default function StartPage() {
                 </div>
             </div>
 
-            <div className="fixed top-[62%] inset-x-0 z-[1000] flex justify-center pointer-events-none px-4">
-                <div className="w-full max-w-sm flex flex-col gap-3">
-                    {/* Bundle success toast */}
-                    {showBundleSuccessToast && (
-                        <div className="bg-gradient-to-br from-primary via-primary-light to-accent text-white px-8 py-6 rounded-[28px] shadow-[0_20px_50px_rgba(157,80,187,0.5)] flex items-center gap-5 border border-white/30 animate-slide-up pointer-events-auto">
-                            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                                <Zap size={28} className="text-white animate-pulse" />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Premium Order Success</span>
-                                <p className="text-[11px] font-bold text-white leading-relaxed">Optimization Cycle complete! Profit added to your secure wallet balance.</p>
+            <ItemDetailModal
+                item={selectedItem}
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onSubmit={handleSubmitTask}
+                balance={profile?.wallet_balance || 0}
+                commissionRate={commissionRate}
+                format={format}
+                isSubmitting={isSubmitting}
+            />
+            <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
+
+            {showMinBalanceModal && (
+                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-72">
+                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
+                        <button onClick={() => setShowMinBalanceModal(false)} className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
+                            <X size={24} />
+                        </button>
+                        <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
+                            <AlertTriangle size={40} className="text-danger" />
+                        </div>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Access Denied</h2>
+                        <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">Minimum amount required to start task is $65</span>
+                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25">Refill Balance <ArrowRight size={18} /></Link>
+                    </div>
+                </div>
+            )}
+
+            {showCompletionModal && (
+                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-72">
+                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
+                        <button onClick={handleConfirmSettlement} className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"><X size={24} /></button>
+                        <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
+                            <CheckCircle size={40} className="text-success" />
+                        </div>
+                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('task_result')}</h2>
+                        <div className="space-y-4 mb-2">
+                            <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
+                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
+                                <span className="text-sm font-black text-text-primary">{format(profile?.wallet_balance || 0)}</span>
                             </div>
                         </div>
-                    )}
+                    </div>
+                </div>
+            )}
+
+            <div className="fixed top-[62%] inset-x-0 z-[1000] flex justify-center pointer-events-none px-4 md:pl-72">
+                <div className="w-full max-w-sm flex flex-col gap-3">
                     {profitAdded !== null && (
-                        <div className="bg-success text-white px-8 py-5 rounded-[28px] shadow-[0_20px_50px_rgba(34,197,94,0.4)] flex items-center justify-center gap-4 animate-slide-up border border-white/20">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                                <CheckCircle size={22} className="text-white fill-white/20" />
-                            </div>
+                        <div className="bg-success text-white px-8 py-5 rounded-[28px] shadow-[0_20px_50px_rgba(34,197,94,0.4)] flex items-center justify-center gap-4 animate-slide-up border border-white/20 pointer-events-auto">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Profit Applied</span>
-                                <div className="flex items-end gap-1.5">
-                                    <span className="text-xl font-black tracking-tight">+{format(profitAdded)}</span>
-                                    <span className="text-[10px] font-black opacity-60 mb-0.5">USDT</span>
-                                </div>
+                                <span className="text-xl font-black tracking-tight">+{format(profitAdded)}</span>
                             </div>
-                        </div>
-                    )}
-                    {lockMessage !== null && (
-                        <div className="bg-surface dark:bg-surface/95 dark:backdrop-blur-xl border border-danger/30 px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(239,68,68,0.2)] flex items-center gap-3 animate-slide-up">
-                            <AlertTriangle size={18} className="text-danger" />
-                            <span className="text-sm font-bold text-text-primary tracking-wide uppercase">
-                                {lockMessage}
-                            </span>
                         </div>
                     )}
                 </div>
             </div>
+            {showPendingWarning && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in md:pl-72">
+                    <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
+                        <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
+                            <AlertTriangle size={40} className="text-danger" />
+                        </div>
+                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
+                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">Settlement Portal <ArrowRight size={18} /></Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, CheckCircle, Zap, TrendingUp, ShieldCheck } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
 
@@ -31,11 +32,22 @@ export default function BundledPackageModal({
     onAccept
 }: BundledPackageModalProps) {
     const { format } = useCurrency();
+    const [mounted, setMounted] = useState(false);
 
-    if (!isOpen || !bundle) return null;
+    useEffect(() => {
+        setMounted(true);
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [isOpen]);
 
-    return (
-        <div className="absolute inset-0 z-[10001] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl transition-all duration-300">
+    if (!mounted || !isOpen || !bundle) return null;
+
+    const modalContent = (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl transition-all duration-300 md:pl-72">
             <div
                 className="bg-surface dark:bg-[#0f0a15] w-full max-w-sm max-h-[85vh] rounded-[40px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] border border-amber-500/20 animate-fade-in relative flex flex-col"
                 onClick={(e) => e.stopPropagation()}
@@ -104,4 +116,6 @@ export default function BundledPackageModal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
