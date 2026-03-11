@@ -9,12 +9,12 @@ import type { TaskItem } from '@/lib/types';
 import ItemDetailModal from '@/components/ItemDetailModal';
 import BundledPackageModal from '@/components/BundledPackageModal';
 import type { BundlePackage } from '@/components/BundledPackageModal';
-import { 
-    Wallet, 
-    AlertTriangle, 
-    ArrowRight, 
-    Zap, 
-    CheckCircle, 
+import {
+    Wallet,
+    AlertTriangle,
+    ArrowRight,
+    Zap,
+    CheckCircle,
     X,
     Activity,
     TrendingUp,
@@ -48,6 +48,7 @@ export default function StartPage() {
     const [lockMessage, setLockMessage] = useState<string | null>(null);
     const [showMinBalanceModal, setShowMinBalanceModal] = useState(false);
     const [showBundleSuccessToast, setShowBundleSuccessToast] = useState(false);
+    const [hasPendingTask, setHasPendingTask] = useState(false);
 
     // Dynamic Progress Logic
     const [tasksPerSet, setTasksPerSet] = useState(40);
@@ -57,10 +58,10 @@ export default function StartPage() {
     const [isLoadingData, setIsLoadingData] = useState(true);
     const completedCount = profile?.completed_count || 0;
     const currentSet = profile?.current_set || 1;
-    
+
     // Profile Completion check
     const isProfileIncomplete = !profile?.phone || profile?.phone === '';
-    
+
     // Progress calculation based on current level (offset) and current set
     const tasksInCurrentSet = Math.max(0, Math.min(completedCount - taskBaseOffset - ((currentSet - 1) * tasksPerSet), tasksPerSet));
     const isLocked = tasksInCurrentSet >= tasksPerSet;
@@ -82,11 +83,15 @@ export default function StartPage() {
                 // Parallelize all initial global data fetches
                 const [levelsRes, pastTasksRes, itemsRes] = await Promise.all([
                     supabase.from('levels').select('id, tasks_per_set, sets_per_day, commission_rate').order('price', { ascending: true }),
-                    supabase.from('user_tasks').select('task_item_id').eq('user_id', profile.id).neq('status', 'cancelled'),
+                    supabase.from('user_tasks').select('task_item_id, status').eq('user_id', profile.id).neq('status', 'cancelled'),
                     supabase.from('task_items').select('*').eq('is_active', true).eq('level_id', profile.level_id)
                 ]);
 
                 // 1. Level Logic
+                if (pastTasksRes.data) {
+                    const pending = pastTasksRes.data.some(t => t.status === 'pending');
+                    setHasPendingTask(pending);
+                }
                 if (levelsRes.data) {
                     let offset = 0;
                     const currentLevel = levelsRes.data.find(l => l.id === profile.level_id);
@@ -106,7 +111,7 @@ export default function StartPage() {
                 // 2. Items logic + Preloading
                 const usedItemIds = (pastTasksRes.data || []).map(t => t.task_item_id);
                 let availableItems = (itemsRes.data || []).filter(item => !usedItemIds.includes(item.id));
-                
+
                 // FALLBACK: If all products for this level are used, cycle back to the beginning of the pool
                 // This prevents "shortages" when admins assign many multi-product bundles
                 if (availableItems.length === 0 && itemsRes.data && itemsRes.data.length > 0) {
@@ -122,7 +127,7 @@ export default function StartPage() {
                         level_id: profile.level_id
                     }));
                 }
-                
+
                 const shuffled = [...availableItems].sort(() => 0.5 - Math.random());
                 const selectedItems = shuffled.slice(0, 24);
                 setItems(selectedItems);
@@ -160,7 +165,9 @@ export default function StartPage() {
 
     // Proactive Messaging Logic
     useEffect(() => {
-        if (isLocked) {
+        if (hasPendingTask) {
+            setMatchingStatus("You have a pending order to submit");
+        } else if (isLocked) {
             if (currentSet >= setsPerDay) {
                 setMatchingStatus(t('daily_limit_reached'));
             } else {
@@ -169,30 +176,37 @@ export default function StartPage() {
         } else {
             setMatchingStatus(t('ready_to_match'));
         }
-    }, [isLocked, currentSet, t, setsPerDay]);
+    }, [isLocked, currentSet, t, setsPerDay, hasPendingTask]);
 
     const handleStart = useCallback(async () => {
         if (isSpinning || items.length === 0) return;
 
         const walletBalance = profile?.wallet_balance || 0;
-        
+
         if (walletBalance < 65 && walletBalance >= 0) {
             setShowMinBalanceModal(true);
             return;
         }
-        
+
         if (isLocked) {
-            const msg = isAllSetsDone 
+            const msg = isAllSetsDone
                 ? t('daily_limit_reached')
                 : t('set_complete_contact_support').replace('{set}', String(currentSet));
             setMatchingStatus(msg);
-            
+
             if (!modalSeen) {
                 setShowCompletionModal(true);
             } else {
                 setLockMessage(msg);
                 setTimeout(() => setLockMessage(null), 3000);
             }
+            return;
+        }
+
+        if (hasPendingTask) {
+            setMatchingStatus("You have a pending order to submit");
+            setLockMessage("You have a pending order to submit. Please check your activity records.");
+            setTimeout(() => setLockMessage(null), 3000);
             return;
         }
 
@@ -227,12 +241,12 @@ export default function StartPage() {
 
         setTimeout(async () => {
             clearInterval(stageInterval);
-            
+
             // 1. Check for Pending Bundle strictly by Index
             const { data: freshProfile } = await supabase.from('profiles').select('*').eq('id', profile?.id).single();
             const pb = (freshProfile as any)?.pending_bundle;
             const currentItemIndex = tasksInCurrentSet + 1; // 1-based index for the current task
-            
+
             let finalIndex = Math.floor(Math.random() * items.length);
             let matchedItem = { ...items[finalIndex] };
 
@@ -246,7 +260,7 @@ export default function StartPage() {
                         category: pb.taskItem.category,
                         level_id: profile?.level_id || 1
                     } as TaskItem;
-                    
+
                     // Inject into items array visually so the highlight matches
                     const newItems = [...items];
                     newItems[finalIndex] = matchedItem;
@@ -282,11 +296,11 @@ export default function StartPage() {
             const { data: freshProfile } = await supabase.from('profiles').select('*').eq('id', profile.id).single();
             bundle = (freshProfile as any)?.pending_bundle;
         }
-        
+
         if (bundle && Number(bundle.targetIndex) === currentItemIndex) {
             const bundleIds = Array.isArray(bundle.taskItemIds) ? bundle.taskItemIds : [];
             const remainingIds = bundleIds.filter((id: number) => id !== item.id);
-            
+
             setPendingTaskItem(item);
             setActiveBundle({
                 id: String(bundle.id || `admin-${Date.now()}`),
@@ -299,11 +313,11 @@ export default function StartPage() {
                 taskItem: { title: item.title, image_url: item.image_url, category: item.category ?? '' },
             });
             setBundleModal(true);
-            
+
             // Cleanup the bundle after trigger
             if (remainingIds.length === 0) await supabase.from('profiles').update({ pending_bundle: null }).eq('id', profile.id);
             else await supabase.from('profiles').update({ pending_bundle: { ...bundle, taskItemIds: remainingIds } }).eq('id', profile.id);
-            
+
             await refreshProfile();
             return;
         }
@@ -314,7 +328,7 @@ export default function StartPage() {
 
     const handleSubmitTask = async (item: TaskItem) => {
         if (isSubmitting) return;
-        
+
         // Detailed check for return reasons
         if (!profile) {
             alert("Session lost. Please log in again.");
@@ -328,7 +342,7 @@ export default function StartPage() {
         }
 
         if (isLocked) {
-            const msg = isAllSetsDone 
+            const msg = isAllSetsDone
                 ? t('daily_limit_reached')
                 : t('set_complete_contact_support').replace('{set}', String(currentSet));
             alert(msg);
@@ -337,10 +351,10 @@ export default function StartPage() {
 
         setIsSubmitting(true);
         console.log("Submitting optimization for system ID:", item.id);
-        
+
         try {
-            const { data, error } = await supabase.rpc('complete_user_task', { 
-                p_task_item_id: item.id 
+            const { data, error } = await supabase.rpc('complete_user_task', {
+                p_task_item_id: item.id
             });
 
             if (error) {
@@ -352,27 +366,27 @@ export default function StartPage() {
             const earnedAmount = data?.earned_amount || 0;
             const newBalance = data?.new_balance || profile.wallet_balance;
             const isBundleResult = data?.is_bundle || false;
-            
+
             console.log("Submission success data:", data);
-            
+
             if (isBundleResult) {
                 setShowBundleSuccessToast(true);
                 setTimeout(() => setShowBundleSuccessToast(false), 6000);
             } else if (tasksInCurrentSet + 1 >= tasksPerSet) {
-                 setModalOpen(false);
-                 setModalSeen(false);
-                 setTimeout(() => setShowCompletionModal(true), 200);
+                setModalOpen(false);
+                setModalSeen(false);
+                setTimeout(() => setShowCompletionModal(true), 200);
             } else {
-                 setModalOpen(false);
-                 setProfitAdded(earnedAmount);
-                 setTimeout(() => setProfitAdded(null), 3000);
+                setModalOpen(false);
+                setProfitAdded(earnedAmount);
+                setTimeout(() => setProfitAdded(null), 3000);
             }
 
             // 2. Sync with database
             await refreshProfile();
             console.log("Profile refreshed successfully");
-            
-        } catch (err: any) { 
+
+        } catch (err: any) {
             console.error("Critical Task Submission Error:", err);
             const errorMsg = err?.message || err?.details || 'Optimization failed.';
             alert(`Optimization Failure: ${errorMsg}`);
@@ -395,17 +409,25 @@ export default function StartPage() {
         if (!profile) return;
         const newBalance = profile.wallet_balance - bundle.totalAmount;
         const newFrozen = profile.frozen_amount + bundle.totalAmount + bundle.bonusAmount;
-        
-        await supabase.from('profiles').update({ 
-            wallet_balance: newBalance, 
+
+        await supabase.from('profiles').update({
+            wallet_balance: newBalance,
             frozen_amount: newFrozen,
             completed_count: (profile.completed_count || 0) + 1 // INCREMENT so it counts as 1 of the 40 tasks
         }).eq('id', profile.id);
-        
+
         await supabase.from('transactions').insert({ user_id: profile.id, type: 'freeze', amount: bundle.totalAmount, description: `Bundle: ${bundle.name}` });
-        
+
         if (pendingTaskItem) {
-            await supabase.from('user_tasks').insert({ user_id: profile.id, task_item_id: pendingTaskItem.id, status: 'pending', earned_amount: bundle.bonusAmount, completed_at: new Date().toISOString() });
+            await supabase.from('user_tasks').insert({
+                user_id: profile.id,
+                task_item_id: pendingTaskItem.id,
+                status: 'pending',
+                earned_amount: bundle.bonusAmount,
+                cost_amount: bundle.totalAmount,
+                is_bundle: true,
+                completed_at: new Date().toISOString()
+            });
             setPendingTaskItem(null);
         }
         await refreshProfile();
@@ -442,7 +464,7 @@ export default function StartPage() {
                     </video>
                     <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
                 </div>
-                
+
                 <div className="p-5 md:p-8 border-b border-black/5 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                     <div className="flex items-center gap-4 md:gap-6">
                         <div className="w-14 h-14 md:w-16 md:h-16 rounded-[20px] md:rounded-[24px] bg-gradient-to-br from-primary to-accent p-1 shadow-lg shadow-primary/20 shrink-0">
@@ -578,11 +600,11 @@ export default function StartPage() {
                                         >
                                             {/* Bubble Water Effect */}
                                             <div className="absolute inset-0 glass-water opacity-90" />
-                                            
+
                                             {/* Surface Shine */}
                                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.4)_0%,transparent_60%)] z-10" />
                                             <div className="absolute top-1 left-4 right-4 h-1/4 bg-white/20 blur-md rounded-full z-10" />
-                                            
+
                                             {/* Dynamic Liquid Waves */}
                                             <div className={`absolute inset-0 transition-transform duration-1000 ${isSpinning ? 'translate-y-[-20%] rotate-12' : 'translate-y-[60%]'}`}>
                                                 <div className="absolute top-0 left-[-100%] w-[300%] h-[300%] bg-white/10 rounded-[45%] animate-spin-slow" />
@@ -599,7 +621,7 @@ export default function StartPage() {
                                     </div>
                                 );
                             }
-                            
+
                             const itemIdx = idx > 12 ? idx - 1 : idx;
                             return (
                                 <div key={idx} className={`aspect-square glass-card p-0.5 border-black/5 dark:border-white/5 overflow-hidden transition-all duration-500 rounded-[8px] md:rounded-[12px] ${isSpinning && highlightedIndex === itemIdx ? 'ring-2 ring-primary scale-110 shadow-[0_0_12px_var(--color-primary)] opacity-100 z-10' : 'opacity-80 scale-100'}`}>
@@ -636,18 +658,18 @@ export default function StartPage() {
                 </div>
             </div>
 
-            <ItemDetailModal 
-                item={selectedItem} 
-                isOpen={modalOpen} 
-                onClose={() => setModalOpen(false)} 
-                onSubmit={handleSubmitTask} 
+            <ItemDetailModal
+                item={selectedItem}
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onSubmit={handleSubmitTask}
                 balance={profile?.wallet_balance || 0}
                 commissionRate={commissionRate}
                 format={format}
                 isSubmitting={isSubmitting}
             />
             <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
- 
+
             {/* Profit Toast */}
             {profitAdded !== null && (
                 <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[1000] animate-bounce-in">
@@ -679,31 +701,31 @@ export default function StartPage() {
             {showMinBalanceModal && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-72">
                     <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
-                        <button 
+                        <button
                             onClick={() => setShowMinBalanceModal(false)}
                             className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                         >
                             <X size={24} />
                         </button>
                         <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
-                             <AlertTriangle size={40} className="text-danger" />
-                             <div className="absolute inset-0 rounded-full border border-danger animate-ping opacity-20" />
+                            <AlertTriangle size={40} className="text-danger" />
+                            <div className="absolute inset-0 rounded-full border border-danger animate-ping opacity-20" />
                         </div>
                         <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-                             Access Denied
+                            Access Denied
                         </h2>
                         <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
                             Minimum amount required to start task is $65
                         </span>
-                        
+
                         <div className="space-y-4 mb-8">
                             <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider opacity-60">
                                 Your balance of {format(profile?.wallet_balance || 0)} is below the node activation threshold.
                             </p>
                         </div>
 
-                        <Link 
-                            href="/deposit" 
+                        <Link
+                            href="/deposit"
                             className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25"
                         >
                             Refill Balance <ArrowRight size={18} />
@@ -715,25 +737,25 @@ export default function StartPage() {
             {showCompletionModal && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-72">
                     <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
-                        <button 
+                        <button
                             onClick={handleConfirmSettlement}
                             className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                         >
                             <X size={24} />
                         </button>
                         <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
-                             <CheckCircle size={40} className="text-success" />
-                             <div className="absolute inset-0 rounded-full border border-success animate-ping opacity-20" />
+                            <CheckCircle size={40} className="text-success" />
+                            <div className="absolute inset-0 rounded-full border border-success animate-ping opacity-20" />
                         </div>
                         <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">
-                             {t('task_result')}
+                            {t('task_result')}
                         </h2>
                         <span className="text-success font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">
                             {isAllSetsDone
-                                ? 'Daily Optimization Cycle Finished • Contact the Concierge Desk for assistance' 
+                                ? 'Daily Optimization Cycle Finished • Contact the Concierge Desk for assistance'
                                 : 'Set Sequence Completed • Contact the Concierge Desk to unlock next set'}
                         </span>
-                        
+
                         <div className="space-y-4 mb-2">
                             <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
                                 <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
@@ -755,13 +777,13 @@ export default function StartPage() {
                             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                                 <CheckCircle size={22} className="text-white fill-white/20" />
                             </div>
-                             <div className="flex flex-col">
-                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Profit Applied</span>
-                                 <div className="flex items-end gap-1.5">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Profit Applied</span>
+                                <div className="flex items-end gap-1.5">
                                     <span className="text-xl font-black tracking-tight">+{format(profitAdded)}</span>
                                     <span className="text-[10px] font-black opacity-60 mb-0.5">USDT</span>
-                                 </div>
-                             </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                     {lockMessage !== null && (
@@ -777,17 +799,17 @@ export default function StartPage() {
             {showPendingWarning && (
                 <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in">
                     <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
-                         <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
-                              <AlertTriangle size={40} className="text-danger" />
-                         </div>
-                         <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
-                         <p className="text-danger-light font-black text-[10px] uppercase tracking-[0.2em] mb-6">{t('negative_balance_detected')}</p>
-                         <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider mb-8 opacity-60">
-                              Your account is currently locked due to an active bundle deficit. Optimization services are suspended until settlement.
-                         </p>
-                         <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">
-                              {t('settlement_portal')} <ArrowRight size={18} />
-                         </Link>
+                        <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
+                            <AlertTriangle size={40} className="text-danger" />
+                        </div>
+                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
+                        <p className="text-danger-light font-black text-[10px] uppercase tracking-[0.2em] mb-6">{t('negative_balance_detected')}</p>
+                        <p className="text-text-secondary text-xs font-bold leading-relaxed uppercase tracking-wider mb-8 opacity-60">
+                            Your account is currently locked due to an active bundle deficit. Optimization services are suspended until settlement.
+                        </p>
+                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">
+                            {t('settlement_portal')} <ArrowRight size={18} />
+                        </Link>
                     </div>
                 </div>
             )}
