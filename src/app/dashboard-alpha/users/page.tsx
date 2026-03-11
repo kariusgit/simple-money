@@ -229,6 +229,7 @@ export default function AdminUsersPage() {
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Balance</th>
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Task Profit</th>
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Team Bonus</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Frozen</th>
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">VIP Level</th>
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Progress</th>
                                 <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Affiliate</th>
@@ -237,14 +238,14 @@ export default function AdminUsersPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={9} className="p-8 text-center text-text-secondary">
+                                <tr><td colSpan={10} className="p-8 text-center text-text-secondary">
                                     <div className="flex flex-col items-center gap-2">
                                         <Loader2 className="animate-spin text-primary" size={24} />
                                         <span className="text-xs font-medium tracking-widest uppercase opacity-50">Syncing database...</span>
                                     </div>
                                 </td></tr>
                             ) : filteredUsers.length === 0 ? (
-                                <tr><td colSpan={9} className="p-8 text-center text-text-secondary font-medium uppercase tracking-widest text-xs opacity-50">No users matched your search</td></tr>
+                                <tr><td colSpan={10} className="p-8 text-center text-text-secondary font-medium uppercase tracking-widest text-xs opacity-50">No users matched your search</td></tr>
                             ) : (
                                 filteredUsers.map((user) => {
                                     const referrer = users.find(u => u.id === user.referred_by);
@@ -267,6 +268,7 @@ export default function AdminUsersPage() {
                                                     <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-white" value={editData.wallet_balance || 0} onChange={(e) => setEditData({ ...editData, wallet_balance: parseFloat(e.target.value) || 0 })} /></td>
                                                     <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-success" value={editData.profit || 0} onChange={(e) => setEditData({ ...editData, profit: parseFloat(e.target.value) || 0 })} /></td>
                                                     <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-accent-light" value={editData.referral_earned || 0} onChange={(e) => setEditData({ ...editData, referral_earned: parseFloat(e.target.value) || 0 })} /></td>
+                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-danger/70" value={editData.frozen_amount || 0} onChange={(e) => setEditData({ ...editData, frozen_amount: parseFloat(e.target.value) || 0 })} /></td>
                                                     <td className="p-3">
                                                         <select className="input-field py-1.5 text-xs font-black w-24 border-primary/30" value={editData.level_id || 1} onChange={(e) => setEditData({ ...editData, level_id: parseInt(e.target.value) })}>
                                                             {[1, 2, 3, 4, 5].map(lvl => <option key={lvl} value={lvl} className="bg-[#1a1a2e]">Level {lvl}</option>)}
@@ -332,6 +334,7 @@ export default function AdminUsersPage() {
                                                     <td className="p-4"><span className="font-mono font-bold text-white text-xs whitespace-nowrap">${user.wallet_balance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
                                                     <td className="p-4"><span className="font-mono font-bold text-success text-xs whitespace-nowrap">${user.profit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
                                                     <td className="p-4"><span className="font-mono font-bold text-accent-light text-xs whitespace-nowrap">${user.referral_earned?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                                                    <td className="p-4"><span className="font-mono font-bold text-danger/70 text-xs whitespace-nowrap">${user.frozen_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
                                                     <td className="p-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
