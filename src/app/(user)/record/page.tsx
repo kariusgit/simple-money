@@ -154,10 +154,10 @@ export default function RecordPage() {
             </div>
 
             <div className="glass-card overflow-hidden">
-                <div className="grid grid-cols-4 md:grid-cols-5 bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 text-[10px] font-black text-text-secondary uppercase tracking-[0.2em]">
+                <div className="grid grid-cols-5 bg-black/5 dark:bg-white/5 border-b border-black/5 dark:border-white/5 text-[9px] font-black text-text-secondary uppercase tracking-widest">
                     <span className="px-4 py-3 border-r border-black/5 dark:border-white/5">{t('timestamp')}</span>
-                    <span className="hidden md:block px-4 py-3 border-r border-black/5 dark:border-white/5">{t('task_type')}</span>
-                    <span className="px-4 py-3 border-r border-black/5 dark:border-white/5">Details & Value</span>
+                    <span className="px-4 py-3 border-r border-black/5 dark:border-white/5">Details</span>
+                    <span className="px-4 py-3 border-r border-black/5 dark:border-white/5">Value</span>
                     <span className="px-4 py-3 border-r border-black/5 dark:border-white/5">Profit</span>
                     <span className="px-4 py-3 text-right">{t('status')}</span>
                 </div>
@@ -174,7 +174,7 @@ export default function RecordPage() {
                         </div>
                     ) : (
                         filteredTasks.map((task, idx) => (
-                            <div key={task.id} className={`grid grid-cols-4 md:grid-cols-5 items-stretch hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors group ${idx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.01] dark:bg-white/[0.01]'}`}>
+                            <div key={task.id} className={`grid grid-cols-5 items-stretch hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors group ${idx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.01] dark:bg-white/[0.01]'}`}>
                                 <div className="px-4 py-5 border-r border-black/5 dark:border-white/5 flex flex-col justify-center">
                                     <p className="text-[11px] text-text-primary font-bold">
                                         {new Date(task.created_at).toLocaleDateString(
@@ -199,8 +199,8 @@ export default function RecordPage() {
                                         )}
                                     </p>
                                 </div>
-                                <div className="hidden md:flex flex-col px-4 py-5 border-r border-black/5 dark:border-white/5 justify-center">
-                                    <span className="text-[11px] font-bold text-text-primary uppercase tracking-tight truncate">
+                                <div className="flex flex-col px-4 py-5 border-r border-black/5 dark:border-white/5 justify-center">
+                                    <span className="text-[11px] font-bold text-text-primary uppercase tracking-tight truncate max-w-[80px] md:max-w-none">
                                         {task.task_item?.title || `${t('task')} #${task.task_item_id}`}
                                     </span>
                                     {task.is_bundle && (
@@ -212,7 +212,7 @@ export default function RecordPage() {
                                 <div className="px-4 py-5 border-r border-black/5 dark:border-white/5 flex flex-col justify-center gap-2">
                                     <div className="flex flex-col">
                                         <span className="text-[9px] opacity-40 uppercase tracking-tighter font-black">Value</span>
-                                        <span className="text-[11px] font-black text-danger">{format(task.cost_amount || 0)}</span>
+                                        <span className="text-[11px] font-black text-accent">{format(task.cost_amount || 0)}</span>
                                     </div>
                                     {task.is_bundle && task.status === 'pending' && (
                                         <div className="flex flex-col border-t border-black/5 dark:border-white/5 pt-1.5">

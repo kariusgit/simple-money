@@ -1,5 +1,7 @@
--- Migration: Fix cost_amount reflection and ensure referral bonus visibility
--- This ensures normal tasks show their product value in red and referral bonuses are tracked correctly.
+-- Migration: Final Referral & Value Visibility Fix
+-- This ensures:
+-- 1. EVERY task (normal or bundle) gives 20% of its profit to the referrer instantly.
+-- 2. Product Value (cost_amount) is correctly stored and reflected for all tasks.
 
 CREATE OR REPLACE FUNCTION public.complete_user_task(p_task_item_id INT)
 RETURNS json AS $$
@@ -57,7 +59,7 @@ BEGIN
         UPDATE public.profiles SET profit = 0, current_set = 1, last_reset_at = v_last_reset_at WHERE id = v_user_id;
     END IF;
 
-    -- Check for existing pending task (Bundle Scenario)
+    -- Check for existing pending task (Bundle Scenario from user_tasks)
     SELECT id, earned_amount, cost_amount, is_bundle 
     INTO v_pending_task_id, v_earned_amount, v_cost_amount, v_is_bundle_task
     FROM public.user_tasks 
@@ -81,38 +83,38 @@ BEGIN
 
     v_tasks_in_current_set := v_completed_count - v_task_base_offset - ((v_current_set - 1) * v_tasks_per_set);
     
-    -- Regular Task Logic (if not already pending)
-    IF v_pending_task_id IS NULL THEN
+    -- Processing Logic
+    IF v_pending_task_id IS NOT NULL THEN
+        -- Completing a BUNDLE that was previously started/frozen
+        v_is_bundle_task := true;
+        -- earned_amount and cost_amount are already set from the SELECT INTO
+    ELSIF v_pending_bundle IS NOT NULL AND (v_tasks_in_current_set + 1) = (v_pending_bundle->>'targetIndex')::INT THEN
+        -- Just triggered a NEW bundle (directly submitting from modal logic)
+        v_cost_amount := (v_pending_bundle->>'totalAmount')::DECIMAL;
+        v_earned_amount := (v_pending_bundle->>'bonusAmount')::DECIMAL;
+        v_is_bundle_task := true;
+    ELSE
+        -- Normal task
         IF v_tasks_in_current_set >= v_tasks_per_set THEN
             RAISE EXCEPTION 'Daily set sequence completed. Contact support for next set.';
         END IF;
 
-        IF v_wallet_balance < 50 THEN -- Allowing lower balance for initial users
+        IF v_wallet_balance < 65 THEN
             RAISE EXCEPTION 'Minimum balance required to start task is $65. Current: $%', v_wallet_balance;
         END IF;
 
-        -- Check if current task should be a bundle trigger
-        IF v_pending_bundle IS NOT NULL AND (v_tasks_in_current_set + 1) = (v_pending_bundle->>'targetIndex')::INT THEN
-            v_cost_amount := (v_pending_bundle->>'totalAmount')::DECIMAL;
-            v_earned_amount := (v_pending_bundle->>'bonusAmount')::DECIMAL;
-            v_is_bundle_task := true;
-        ELSE
-            -- Normal simulated price
-            v_random_price := (v_wallet_balance * (0.40 + random() * 0.45));
-            IF v_random_price < 50 AND v_wallet_balance >= 65 THEN v_random_price := v_wallet_balance * 0.8; END IF;
-            v_earned_amount := ROUND((v_random_price * v_commission_rate), 2);
-            v_cost_amount := v_random_price; -- Set cost_amount for visibility in records
-        END IF;
+        v_random_price := (v_wallet_balance * (0.40 + random() * 0.45));
+        IF v_random_price < 50 AND v_wallet_balance >= 65 THEN v_random_price := v_wallet_balance * 0.8; END IF;
+        
+        v_earned_amount := ROUND((v_random_price * v_commission_rate), 2);
+        v_cost_amount := v_random_price; -- Store the simulated value
     END IF;
 
     SELECT title INTO v_task_title FROM public.task_items WHERE id = p_task_item_id;
 
-    -- UPDATE PROFILE
-    -- If it's a NEW normal task, only add commission.
-    -- If it was a PENDING BUNDLE, add back cost + commission.
+    -- UPDATE USER PROFILE
     IF v_pending_task_id IS NOT NULL THEN
-        -- Completing a pending bundle
-    	UPDATE public.profiles 
+        UPDATE public.profiles 
         SET 
             wallet_balance = wallet_balance + v_cost_amount + v_earned_amount,
             profit = profit + v_earned_amount,
@@ -122,22 +124,18 @@ BEGIN
         WHERE id = v_user_id
         RETURNING wallet_balance INTO v_new_wallet_balance;
     ELSE
-        -- completing a fresh task (normal or fresh bundle trigger)
-        -- If it's a fresh bundle, it doesn't add to balance yet, it stays pending.
-        -- Wait, this function is called BOTH for starting and submitting? 
-        -- No, usually it's for submitting. 
-        -- If it's a fresh normal task, we just add commission.
         UPDATE public.profiles 
         SET 
             wallet_balance = wallet_balance + v_earned_amount,
             profit = profit + v_earned_amount,
             total_profit = total_profit + v_earned_amount,
-            completed_count = completed_count + 1
+            completed_count = completed_count + 1,
+            pending_bundle = CASE WHEN v_is_bundle_task THEN NULL ELSE pending_bundle END
         WHERE id = v_user_id
         RETURNING wallet_balance INTO v_new_wallet_balance;
     END IF;
 
-    -- Log task success
+    -- LOG TASK RECORD
     IF v_pending_task_id IS NOT NULL THEN
         UPDATE public.user_tasks 
         SET status = 'completed', completed_at = NOW(), earned_amount = v_earned_amount, cost_amount = v_cost_amount, is_bundle = v_is_bundle_task
@@ -147,7 +145,7 @@ BEGIN
         VALUES (v_user_id, p_task_item_id, 'completed', v_earned_amount, v_cost_amount, v_is_bundle_task, NOW());
     END IF;
 
-    -- Transaction Log
+    -- TRANSACTIONS
     INSERT INTO public.transactions (user_id, type, amount, description, status)
     VALUES (v_user_id, 'commission', v_earned_amount, 'Optimization Reward: ' || COALESCE(v_task_title, 'Standard Task'), 'approved');
 
@@ -156,25 +154,27 @@ BEGIN
         VALUES (v_user_id, 'unfreeze', v_cost_amount, 'Capital Return: ' || COALESCE(v_task_title, 'Bundle'), 'approved');
     END IF;
 
-    -- Referral Bonus (20% of the commission)
+    -- 20% INSTANT REFERRAL BONUS ON EVERY TASK PROFIT
     IF v_referrer_id IS NOT NULL AND v_earned_amount > 0 THEN
         v_ref_bonus := ROUND((v_earned_amount * 0.20), 2);
+        
         IF v_ref_bonus > 0 THEN
-            UPDATE public.profiles SET wallet_balance = wallet_balance + v_ref_bonus WHERE id = v_referrer_id;
+            -- Credit Referrer Wallet
+            UPDATE public.profiles 
+            SET wallet_balance = wallet_balance + v_ref_bonus 
+            WHERE id = v_referrer_id;
+
+            -- Log Referrer Transaction
             INSERT INTO public.transactions (user_id, type, amount, description, status)
-            VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Referral Reward (20% of Optimization)', 'approved');
+            VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Neural Network Dividend (20%) from ' || (SELECT username FROM profiles WHERE id = v_user_id), 'approved');
             
+            -- Push Real-time Notification
             INSERT INTO public.notifications (user_id, title, message, type)
-            VALUES (v_referrer_id, 'Team Reward Received! 🎉', 'You earned $' || v_ref_bonus || ' from your teammate''s optimization.', 'success');
+            VALUES (v_referrer_id, 'Bonus Received! 🎉', 'Your team member just completed a task. You earned $' || v_ref_bonus || '.', 'success');
         END IF;
     END IF;
 
-    -- Detect set completion
-    IF (v_tasks_in_current_set + 1) >= v_tasks_per_set THEN
-        v_is_first_set_complete := true;
-    END IF;
-
-    -- Also backfill NULL cost_amounts for existing completed tasks (Safety UI sync)
+    -- Backfill: Fix any existing tasks for this user where cost_amount is missing
     UPDATE public.user_tasks 
     SET cost_amount = ROUND(earned_amount / v_commission_rate, 2)
     WHERE user_id = v_user_id AND status = 'completed' AND (cost_amount IS NULL OR cost_amount = 0);
@@ -183,7 +183,7 @@ BEGIN
         'success', true,
         'earned_amount', v_earned_amount,
         'new_balance', v_new_wallet_balance,
-        'set_complete', v_is_first_set_complete,
+        'set_complete', (v_tasks_in_current_set + 1 >= v_tasks_per_set),
         'is_bundle', v_is_bundle_task
     );
 END;
