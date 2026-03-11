@@ -10,6 +10,7 @@ export interface Profile {
     profit: number;
     total_profit: number;
     frozen_amount: number;
+    referral_earned: number;
     avatar_url: string | null;
     email: string;
     completed_count: number;
