@@ -212,12 +212,12 @@ export default function RecordPage() {
                                 <div className="px-4 py-5 border-r border-black/5 dark:border-white/5 flex flex-col justify-center gap-2">
                                     <div className="flex flex-col">
                                         <span className="text-[9px] opacity-40 uppercase tracking-tighter font-black">Value</span>
-                                        <span className="text-[11px] font-bold text-text-primary">{format(task.cost_amount || 0)}</span>
+                                        <span className="text-[11px] font-black text-danger">{format(task.cost_amount || 0)}</span>
                                     </div>
                                     {task.is_bundle && task.status === 'pending' && (
                                         <div className="flex flex-col border-t border-black/5 dark:border-white/5 pt-1.5">
                                             <span className="text-[9px] opacity-40 uppercase tracking-tighter font-black">Require</span>
-                                            <span className="text-[11px] font-black text-danger-light">-{format(Math.abs(profile?.wallet_balance || 0))}</span>
+                                            <span className="text-[11px] font-black text-danger">-{format(Math.abs(profile?.wallet_balance || 0))}</span>
                                         </div>
                                     )}
                                 </div>
