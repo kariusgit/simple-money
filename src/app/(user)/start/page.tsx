@@ -753,7 +753,7 @@ export default function StartPage() {
                 </div>
             )}
 
-            <div className="fixed top-[58%] inset-x-0 z-[1000] flex justify-center pointer-events-none md:pl-80 px-4">
+            <div className="fixed bottom-20 inset-x-0 z-[1000] flex justify-center pointer-events-none md:pl-80 px-4">
                 <div className="w-full max-w-sm flex flex-col gap-3">
                     {/* Bundle success toast */}
                     {showBundleSuccessToast && (
