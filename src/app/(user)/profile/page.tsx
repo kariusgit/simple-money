@@ -130,16 +130,33 @@ export default function ProfilePage() {
             </div>
 
             {/* Wallet Quick Summary */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
                 <div className="glass-card p-6 border-l-4 border-l-primary relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full" />
-                    <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.25em] mb-1 opacity-60">{t('balance')}</p>
-                    <p className="text-3xl font-black text-text-primary tracking-tighter">{format(profile?.wallet_balance ?? 0)}</p>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-8 -mt-8" />
+                    <div className="flex justify-between items-end relative z-10">
+                        <div>
+                            <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.25em] mb-1 opacity-60">{t('balance')}</p>
+                            <p className="text-4xl font-black text-text-primary tracking-tighter">{format(profile?.wallet_balance ?? 0)}</p>
+                        </div>
+                        <div className="text-right">
+                             <div className="px-2 py-1 rounded bg-success/10 border border-success/20">
+                                <span className="text-[10px] font-black text-success uppercase tracking-widest">Active</span>
+                             </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="glass-card p-6 border-l-4 border-l-accent relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-accent/5 rounded-bl-full" />
-                    <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.25em] mb-1 opacity-60">{t('total_profit')}</p>
-                    <p className="text-3xl font-black text-text-primary tracking-tighter">{format(profile?.total_profit ?? 0)}</p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="glass-card p-5 border-l-4 border-l-accent relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-accent/5 rounded-bl-full" />
+                        <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-60">{t('task_profit')}</p>
+                        <p className="text-2xl font-black text-text-primary tracking-tighter">{format(profile?.total_profit ?? 0)}</p>
+                    </div>
+                    <div className="glass-card p-5 border-l-4 border-l-success relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-success/5 rounded-bl-full" />
+                        <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-60">{t('referral_bonus')}</p>
+                        <p className="text-2xl font-black text-text-primary tracking-tighter">{format(profile?.referral_earned ?? 0)}</p>
+                    </div>
                 </div>
             </div>
 

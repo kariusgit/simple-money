@@ -9,6 +9,7 @@ import type { TaskItem } from '@/lib/types';
 import ItemDetailModal from '@/components/ItemDetailModal';
 import BundledPackageModal from '@/components/BundledPackageModal';
 import type { BundlePackage } from '@/components/BundledPackageModal';
+import Portal from '@/components/Portal';
 import {
     Wallet,
     AlertTriangle,
@@ -309,7 +310,10 @@ export default function StartPage() {
 
         setIsSubmitting(true);
         try {
-            const { data, error } = await supabase.rpc('complete_user_task', { p_task_item_id: item.id });
+            const { data, error } = await supabase.rpc('complete_user_task', { 
+                p_task_item_id: item.id,
+                p_cost_amount: costAmount 
+            });
             if (error) throw error;
 
             const earnedAmount = data?.earned_amount ? Number(data.earned_amount) : 0;
@@ -504,8 +508,8 @@ export default function StartPage() {
             <div className="relative flex flex-col items-center justify-center py-6 md:py-10">
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full md:w-[800px] h-[500px] md:h-[600px] bg-primary/10 rounded-full blur-[100px] md:blur-[160px] transition-opacity duration-1000 ${isSpinning ? 'opacity-100' : 'opacity-40'}`} />
 
-                <div className="w-full max-w-2xl mx-auto space-y-12 z-10 px-4">
-                    <div className="grid grid-cols-5 gap-1.5 md:gap-2">
+                <div className="w-full max-w-2xl mx-auto space-y-12 z-10 px-4 relative">
+                    <div className="grid grid-cols-5 gap-1.5 md:gap-2 relative">
                         {Array.from({ length: 25 }).map((_, idx) => {
                             if (idx === 12) {
                                 return (
@@ -515,7 +519,7 @@ export default function StartPage() {
                                             onClick={handleStart}
                                             disabled={isSpinning}
                                             className={`relative w-full h-full rounded-full flex flex-col items-center justify-center p-1.5 transition-all duration-700 overflow-hidden !cursor-pointer
-                                                ${isSpinning ? 'scale-95 shadow-none ring-4 ring-primary/20' : 'hover:scale-105 shadow-[0_0_30px_rgba(157,80,187,0.4)]'}
+                                                ${isSpinning ? 'scale-95 shadow-none ring-4 ring-primary/20' : 'hover:scale-105 shadow-[0_0_30_rgba(157,80,187,0.4)]'}
                                                 ${(isLocked || (profile?.wallet_balance || 0) < 65 || profile?.pending_bundle) ? 'grayscale opacity-40 !cursor-not-allowed' : ''}
                                             `}
                                         >
@@ -548,6 +552,88 @@ export default function StartPage() {
                                 </div>
                             );
                         })}
+
+                        {/* ANCHORED MODALS (NON-FIXED) */}
+                        <ItemDetailModal
+                            item={selectedItem}
+                            isOpen={modalOpen}
+                            onClose={() => setModalOpen(false)}
+                            onSubmit={handleSubmitTask}
+                            balance={profile?.wallet_balance || 0}
+                            commissionRate={commissionRate}
+                            format={format}
+                            isSubmitting={isSubmitting}
+                        />
+                        <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
+
+                        {showMinBalanceModal && (
+                            <Portal>
+                                <div 
+                                    className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in text-center cursor-pointer"
+                                    onClick={() => setShowMinBalanceModal(false)}
+                                >
+                                    <div 
+                                        className="glass-card-strong max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[32px] relative shadow-[0_50px_140px_rgba(0,0,0,0.95)] cursor-default md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div className="w-20 h-20 rounded-[28px] bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(239,68,68,0.3)] relative group overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-danger/20 to-transparent" />
+                                            <AlertTriangle size={40} className="text-danger relative z-10" />
+                                        </div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Access Denied</h2>
+                                        <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed opacity-80">Minimum amount required to start task is $65</span>
+                                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all">Refill Balance <ArrowRight size={18} /></Link>
+                                    </div>
+                                </div>
+                            </Portal>
+                        )}
+
+                        {showCompletionModal && (
+                            <Portal>
+                                <div 
+                                    className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in text-center cursor-pointer"
+                                    onClick={handleConfirmSettlement}
+                                >
+                                    <div 
+                                        className="glass-card-strong max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[32px] relative shadow-[0_50px_140px_rgba(0,0,0,0.95)] cursor-default md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div className="w-20 h-20 rounded-[28px] bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(34,197,94,0.3)] relative group overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-success/20 to-transparent" />
+                                            <CheckCircle size={40} className="text-success relative z-10" />
+                                        </div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">{t('task_result')}</h2>
+                                        <div className="space-y-4 mb-8">
+                                            <div className="flex justify-between items-center px-2 py-4 border-b border-white/10">
+                                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-40">{t('settlement_amount')}</span>
+                                                <span className="text-lg font-black text-success tracking-tight">{format(profile?.wallet_balance || 0)}</span>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={handleConfirmSettlement}
+                                            className="w-full py-4 rounded-2xl bg-success/20 text-success border border-success/30 font-black uppercase tracking-widest text-[11px] hover:bg-success/30 transition-all active:scale-95"
+                                        >
+                                            Confirm Settlement
+                                        </button>
+                                    </div>
+                                </div>
+                            </Portal>
+                        )}
+
+                        {showPendingWarning && (
+                            <Portal>
+                                <div className="fixed inset-0 z-[11000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+                                    <div className="glass-card-strong max-w-sm w-full p-8 text-center animate-scale-in border-danger/40 shadow-[0_50px_140px_rgba(0,0,0,0.9)] rounded-[32px] md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+                                        <div className="w-20 h-20 rounded-[28px] bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(239,68,68,0.3)]">
+                                            <AlertTriangle size={40} className="text-danger" />
+                                        </div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
+                                        <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-8 opacity-60">Pending settlement detected</p>
+                                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 shadow-xl shadow-danger/25 hover:bg-danger/80 transition-all active:scale-95">Settlement Portal <ArrowRight size={18} /></Link>
+                                    </div>
+                                </div>
+                            </Portal>
+                        )}
                     </div>
 
                     <div className="flex flex-col items-center text-center">
@@ -572,72 +658,48 @@ export default function StartPage() {
                 </div>
             </div>
 
-            <ItemDetailModal
-                item={selectedItem}
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSubmit={handleSubmitTask}
-                balance={profile?.wallet_balance || 0}
-                commissionRate={commissionRate}
-                format={format}
-                isSubmitting={isSubmitting}
-            />
-            <BundledPackageModal isOpen={bundleModal} bundle={activeBundle} onAccept={handleBundleAccept} />
-
-            {showMinBalanceModal && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-64">
-                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[40px] relative">
-                        <button onClick={() => setShowMinBalanceModal(false)} className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
-                            <X size={24} />
-                        </button>
-                        <div className="w-20 h-20 rounded-full bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-danger)] relative">
-                            <AlertTriangle size={40} className="text-danger" />
-                        </div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Access Denied</h2>
-                        <span className="text-danger font-black text-[10px] uppercase tracking-[0.4em] mb-10 block leading-relaxed">Minimum amount required to start task is $65</span>
-                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-primary/25">Refill Balance <ArrowRight size={18} /></Link>
+            {/* TOAST ALIGNED 59% ON DESKTOP, CENTER ON MOBILE */}
+            <Portal>
+                <div className="fixed top-28 left-1/2 md:left-[59%] -translate-x-1/2 z-[20000] flex justify-center pointer-events-none px-4 w-full md:w-auto">
+                    <div className="w-full max-w-sm flex flex-col gap-3">
+                        {profitAdded !== null && (
+                            <div className="glass-card-strong px-5 py-4 rounded-[20px] shadow-[0_25px_60px_rgba(0,0,0,0.8)] border border-success/30 flex items-center gap-4 animate-scale-in pointer-events-auto bg-surface/90">
+                                <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center text-success shrink-0">
+                                    <TrendingUp size={18} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[11px] font-black text-white uppercase tracking-tighter">Profit Applied</span>
+                                    <span className="text-sm font-black text-success">+{format(profitAdded)} USDT</span>
+                                </div>
+                                <div className="ml-auto pl-3 border-l border-white/5 flex flex-col items-center">
+                                    <Zap size={14} className="text-success animate-pulse" />
+                                    <span className="text-[7px] font-mono text-success/40">ADDED</span>
+                                </div>
+                            </div>
+                        )}
+                        {showBundleSuccessToast && (
+                            <div className="bg-gradient-to-br from-primary via-primary-light to-accent text-white px-6 py-4 rounded-[20px] shadow-[0_20px_50px_rgba(157,80,187,0.5)] flex items-center gap-4 border border-white/30 animate-scale-in pointer-events-auto backdrop-blur-xl">
+                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                    <Zap size={20} className="text-white animate-pulse" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/80">Premium Order Success</span>
+                                    <p className="text-[10px] font-bold text-white leading-relaxed">Cycle complete!</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            )}
+            </Portal>
 
-            {showCompletionModal && (
-                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-surface dark:bg-background/95 dark:backdrop-blur-2xl animate-fade-in text-center md:pl-64">
-                    <div className="glass-card max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[40px] relative">
-                        <button onClick={handleConfirmSettlement} className="absolute top-6 right-6 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"><X size={24} /></button>
-                        <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_var(--color-success)] relative">
-                            <CheckCircle size={40} className="text-success" />
-                        </div>
-                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('task_result')}</h2>
-                        <div className="space-y-4 mb-2">
-                            <div className="flex justify-between items-center px-2 py-3 border-b border-black/5 dark:border-white/5">
-                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60">{t('settlement_amount')}</span>
-                                <span className="text-sm font-black text-text-primary">{format(profile?.wallet_balance || 0)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="fixed top-[62%] inset-x-0 z-[1000] flex justify-center pointer-events-none px-4 md:pl-32">
-                <div className="w-full max-w-sm flex flex-col gap-3">
-                    {profitAdded !== null && (
-                        <div className="bg-success text-white px-8 py-5 rounded-[28px] shadow-[0_20px_50px_rgba(34,197,94,0.4)] flex items-center justify-center gap-4 animate-slide-up border border-white/20 pointer-events-auto">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Profit Applied</span>
-                                <span className="text-xl font-black tracking-tight">+{format(profitAdded)}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-            {showPendingWarning && (
-                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-surface dark:bg-background/98 dark:backdrop-blur-2xl animate-fade-in md:pl-64">
-                    <div className="glass-card max-w-sm w-full p-8 text-center animate-shake border-danger/40">
-                        <div className="w-20 h-20 rounded-3xl bg-danger/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_var(--color-danger)]">
-                            <AlertTriangle size={40} className="text-danger" />
-                        </div>
-                        <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight mb-2">{t('system_restricted')}</h2>
-                        <Link href="/deposit" className="w-full py-4 rounded-2xl bg-danger text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-danger/25">Settlement Portal <ArrowRight size={18} /></Link>
+            {/* Lock message toast */}
+            {lockMessage !== null && (
+                <div className="fixed bottom-32 left-[58%] -translate-x-1/2 z-[1000] flex justify-center pointer-events-none px-4">
+                    <div className="bg-surface/90 dark:bg-surface/95 backdrop-blur-xl border border-danger/30 px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 animate-slide-up pointer-events-auto">
+                        <AlertTriangle size={18} className="text-danger" />
+                        <span className="text-[10px] font-black text-text-primary tracking-[0.2em] uppercase">
+                            {lockMessage}
+                        </span>
                     </div>
                 </div>
             )}

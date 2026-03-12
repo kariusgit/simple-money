@@ -224,16 +224,16 @@ export default function AdminUsersPage() {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-white/5">
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">User info</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Role</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Balance</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Task Profit</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Team Bonus</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Frozen</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">VIP Level</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Progress</th>
-                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Affiliate</th>
-                                <th className="text-right p-4 text-text-secondary font-black uppercase tracking-widest text-[10px]">Actions</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">User Info</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Role</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Balance</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px] text-success">Task Profit</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px] text-primary-light">Ref Bonus</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Frozen</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">VIP</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Progress</th>
+                                <th className="text-left p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Affiliate</th>
+                                <th className="text-right p-4 text-text-secondary font-black uppercase tracking-widest text-[9px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -265,10 +265,10 @@ export default function AdminUsersPage() {
                                                             <option value="admin">Admin</option>
                                                         </select>
                                                     </td>
-                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-white" value={editData.wallet_balance || 0} onChange={(e) => setEditData({ ...editData, wallet_balance: parseFloat(e.target.value) || 0 })} /></td>
-                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-success" value={editData.profit || 0} onChange={(e) => setEditData({ ...editData, profit: parseFloat(e.target.value) || 0 })} /></td>
-                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-accent-light" value={editData.referral_earned || 0} onChange={(e) => setEditData({ ...editData, referral_earned: parseFloat(e.target.value) || 0 })} /></td>
-                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-xs w-20 font-mono font-bold text-danger/70" value={editData.frozen_amount || 0} onChange={(e) => setEditData({ ...editData, frozen_amount: parseFloat(e.target.value) || 0 })} /></td>
+                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-[11px] w-20 font-mono font-bold text-white" value={editData.wallet_balance || 0} onChange={(e) => setEditData({ ...editData, wallet_balance: parseFloat(e.target.value) || 0 })} title="Total Balance" /></td>
+                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-[11px] w-20 font-mono font-bold text-success border-success/30" value={editData.profit || 0} onChange={(e) => setEditData({ ...editData, profit: parseFloat(e.target.value) || 0 })} title="Task Profit Only" /></td>
+                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-[11px] w-20 font-mono font-bold text-primary-light border-primary/30" value={editData.referral_earned || 0} onChange={(e) => setEditData({ ...editData, referral_earned: parseFloat(e.target.value) || 0 })} title="Referral Bonuses Only" /></td>
+                                                    <td className="p-3"><input type="number" step="0.01" className="input-field py-1.5 text-[11px] w-20 font-mono font-bold text-danger/70" value={editData.frozen_amount || 0} onChange={(e) => setEditData({ ...editData, frozen_amount: parseFloat(e.target.value) || 0 })} title="Frozen Balance" /></td>
                                                     <td className="p-3">
                                                         <select className="input-field py-1.5 text-xs font-black w-24 border-primary/30" value={editData.level_id || 1} onChange={(e) => setEditData({ ...editData, level_id: parseInt(e.target.value) })}>
                                                             {[1, 2, 3, 4, 5].map(lvl => <option key={lvl} value={lvl} className="bg-[#1a1a2e]">Level {lvl}</option>)}
@@ -331,10 +331,10 @@ export default function AdminUsersPage() {
                                                             {user.role}
                                                         </span>
                                                     </td>
-                                                    <td className="p-4"><span className="font-mono font-bold text-white text-xs whitespace-nowrap">${user.wallet_balance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
-                                                    <td className="p-4"><span className="font-mono font-bold text-success text-xs whitespace-nowrap">${user.profit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
-                                                    <td className="p-4"><span className="font-mono font-bold text-accent-light text-xs whitespace-nowrap">${user.referral_earned?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
-                                                    <td className="p-4"><span className="font-mono font-bold text-danger/70 text-xs whitespace-nowrap">${user.frozen_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                                                    <td className="p-4"><span className="font-mono font-bold text-white text-[11px] whitespace-nowrap">${user.wallet_balance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                                                    <td className="p-4"><span className="font-mono font-bold text-success text-[11px] whitespace-nowrap">${user.profit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                                                    <td className="p-4"><span className="font-mono font-bold text-primary-light text-[11px] whitespace-nowrap">${user.referral_earned?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                                                    <td className="p-4"><span className="font-mono font-bold text-danger/70 text-[11px] whitespace-nowrap">${user.frozen_amount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
                                                     <td className="p-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">

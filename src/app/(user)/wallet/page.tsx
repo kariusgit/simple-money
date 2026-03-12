@@ -46,13 +46,19 @@ export default function WalletPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="glass-card p-4 flex flex-col items-center gap-2 min-w-[120px]">
-                                <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest">{t('today_profit')}</p>
-                                <p className="text-xl font-black text-accent">{format(profile?.profit || 0)}</p>
+                        <div className="flex flex-col md:flex-row items-center gap-4">
+                            <div className="grid grid-cols-2 gap-3 w-full md:w-auto text-center">
+                                <div className="glass-card p-4 flex flex-col items-center gap-1 min-w-[120px]">
+                                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest line-clamp-1">{t('today_profit')}</p>
+                                    <p className="text-xl font-black text-accent">{format(profile?.profit || 0)}</p>
+                                </div>
+                                <div className="glass-card p-4 flex flex-col items-center gap-1 min-w-[120px]">
+                                    <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest line-clamp-1">{t('referral_bonus')}</p>
+                                    <p className="text-xl font-black text-success">{format(profile?.referral_earned || 0)}</p>
+                                </div>
                             </div>
-                            <div className="glass-card p-4 flex flex-col items-center gap-2 min-w-[120px]">
-                                <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest">{t('completed')}</p>
+                            <div className="glass-card px-6 py-4 flex flex-col items-center gap-1 min-w-[100px] w-full md:w-auto text-center">
+                                <p className="text-[9px] font-black text-text-secondary uppercase tracking-widest line-clamp-1">{t('completed')}</p>
                                 <p className="text-xl font-black text-primary-light">{profile?.completed_count || 0}</p>
                             </div>
                         </div>

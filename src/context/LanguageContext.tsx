@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/lib/supabase';
 
-export type LanguageCode = 'English' | 'Spanish' | 'French' | 'German' | 'Chinese' | 'Japanese';
+export type LanguageCode = 'English' | 'Spanish' | 'French' | 'German' | 'Chinese' | 'Japanese' | 'Arabic' | 'Portuguese' | 'Turkish' | 'Russian' | 'Hindi' | 'Vietnamese';
 
 const translations: Record<LanguageCode, Record<string, string>> = {
     English: {
@@ -119,7 +119,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: 'Joined',
         submitting: 'Submitting...',
         submitting_order: 'Submitting order...',
-        submit_order: 'Submit order'
+        submit_order: 'Submit order',
+        task_profit: 'Task profit',
+        referral_bonus: 'Referral bonus'
     },
     Spanish: {
         home: 'Inicio',
@@ -234,7 +236,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: 'Unido',
         submitting: 'Enviando...',
         submitting_order: 'Enviando orden...',
-        submit_order: 'Enviar orden'
+        submit_order: 'Enviar orden',
+        task_profit: 'Ganancia de tarea',
+        referral_bonus: 'Bono de referido'
     },
     French: {
         home: 'Accueil',
@@ -348,7 +352,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: 'Rejoint',
         submitting: 'Envoi...',
         submitting_order: 'Envoi de la commande...',
-        submit_order: 'Soumettre la commande'
+        submit_order: 'Soumettre la commande',
+        task_profit: 'Profit de tâche',
+        referral_bonus: 'Bonus de parrainage'
     },
     German: {
         home: 'Startseite',
@@ -462,7 +468,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: 'Beigetreten',
         submitting: 'Wird gesendet...',
         submitting_order: 'Bestellung wird gesendet...',
-        submit_order: 'Bestellung absenden'
+        submit_order: 'Bestellung absenden',
+        task_profit: 'Aufgabengewinn',
+        referral_bonus: 'Empfehlungsbonus'
     },
     Chinese: {
         home: '首页',
@@ -576,7 +584,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: '加入时间',
         submitting: '提交中...',
         submitting_order: '订单提交中...',
-        submit_order: '提交订单'
+        submit_order: '提交订单',
+        task_profit: '任务收益',
+        referral_bonus: '推介奖金'
     },
     Japanese: {
         home: 'ホーム',
@@ -690,7 +700,117 @@ const translations: Record<LanguageCode, Record<string, string>> = {
         joined: '参加日',
         submitting: '送信中...',
         submitting_order: '注文を送信中...',
-        submit_order: '注文を送信'
+        submit_order: '注文を送信',
+        task_profit: 'タスク利益',
+        referral_bonus: '紹介ボーナス'
+    },
+    Arabic: {
+        home: 'الرئيسية',
+        start: 'ابدأ',
+        record: 'السجل',
+        dashboard: 'لوحة التحكم',
+        welcome: 'مرحباً بعودتك',
+        wallet: 'المحفظة',
+        profile: 'الملف الشخصي',
+        support: 'الدعم',
+        settings: 'الإعدادات',
+        language: 'اللغة',
+        currency: 'العملة',
+        dark_mode: 'الوضع الليلي',
+        notifications: 'التنبيهات',
+        deposit: 'إيداع',
+        withdraw: 'سحب',
+        balance: 'الرصيد المتاح',
+    },
+    Portuguese: {
+        home: 'Início',
+        start: 'Começar',
+        record: 'Registro',
+        dashboard: 'Painel',
+        welcome: 'Bem-vindo de volta',
+        wallet: 'Carteira',
+        profile: 'Perfil',
+        support: 'Suporte',
+        settings: 'Configurações',
+        language: 'Idioma',
+        currency: 'Moeda',
+        dark_mode: 'Modo escuro',
+        notifications: 'Notificações',
+        deposit: 'Depósito',
+        withdraw: 'Sacar',
+        balance: 'Saldo disponível',
+    },
+    Turkish: {
+        home: 'Anasayfa',
+        start: 'Başlat',
+        record: 'Kayıt',
+        dashboard: 'Panel',
+        welcome: 'Tekrar hoşgeldiniz',
+        wallet: 'Cüzdan',
+        profile: 'Profil',
+        support: 'Destek',
+        settings: 'Ayarlar',
+        language: 'Dil',
+        currency: 'Para Birimi',
+        dark_mode: 'Karanlık Mod',
+        notifications: 'Bildirimler',
+        deposit: 'Para Yatır',
+        withdraw: 'Para Çek',
+        balance: 'Kullanılabilir Bakiye',
+    },
+    Russian: {
+        home: 'Главная',
+        start: 'Начать',
+        record: 'История',
+        dashboard: 'Панель',
+        welcome: 'С возвращением',
+        wallet: 'Кошелек',
+        profile: 'Профиль',
+        support: 'Поддержка',
+        settings: 'Настройки',
+        language: 'Язык',
+        currency: 'Валюта',
+        dark_mode: 'Темная тема',
+        notifications: 'Уведомления',
+        deposit: 'Депозит',
+        withdraw: 'Вывод',
+        balance: 'Доступный баланс',
+    },
+    Hindi: {
+        home: 'होम',
+        start: 'शुरू करें',
+        record: 'रिकॉर्ड',
+        dashboard: 'डैशबोर्ड',
+        welcome: 'वापसी पर स्वागत है',
+        wallet: 'वॉलेट',
+        profile: 'प्रोफ़ाइल',
+        support: 'सहायता',
+        settings: 'सेटअप',
+        language: 'भाषा',
+        currency: 'मुद्रा',
+        dark_mode: 'डार्क मोड',
+        notifications: 'सूचनाएं',
+        deposit: 'जما करें',
+        withdraw: 'نिकासी',
+        balance: 'उपलब्ध शेष राशि',
+    },
+    Vietnamese: {
+        home: 'Trang chủ',
+        start: 'Bắt đầu',
+        record: 'Lịch sử',
+        dashboard: 'Bảng điều khiển',
+        welcome: 'Chào mừng trở lại',
+        wallet: 'Ví',
+        profile: 'Hồ sơ',
+        support: 'Hỗ trợ',
+        settings: 'Cài đặt',
+        language: 'Ngôn ngữ',
+        currency: 'Tiền tệ',
+        dark_mode: 'Chế độ tối',
+        notifications: 'Thông báo',
+        deposit: 'Nạp tiền',
+        withdraw: 'Rút tiền',
+        balance: 'Số dư khả dụng',
     }
 };
 
@@ -716,7 +836,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const { profile } = useAuth();
     const { languages: backendLanguages } = useSiteSettings();
     const [language, setLanguage] = useState<LanguageCode>('English');
-    const [availableLanguages, setAvailableLanguages] = useState<LanguageCode[]>(['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese']);
+    const [availableLanguages, setAvailableLanguages] = useState<LanguageCode[]>(['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Arabic', 'Portuguese', 'Turkish', 'Russian', 'Hindi', 'Vietnamese']);
 
     useEffect(() => {
         if (backendLanguages && Array.isArray(backendLanguages)) {

@@ -8,6 +8,7 @@ import { CurrencyProvider } from '@/context/CurrencyContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import Script from 'next/script';
 import ScrollToTop from '@/components/ScrollToTop';
+import DraggableChat from '@/components/DraggableChat';
 
 export const metadata: Metadata = {
     title: 'Simple Money - Making Everything Simple',
@@ -34,6 +35,7 @@ export default function RootLayout({
                                 <CurrencyProvider>
                                     <NotificationProvider>
                                         <ScrollToTop />
+                                        <DraggableChat />
                                         {children}
                                     </NotificationProvider>
                                 </CurrencyProvider>
@@ -59,7 +61,11 @@ export default function RootLayout({
                     };
 
                     Tawk_API.onLoad = function(){
-                        // Keep visible by default
+                        Tawk_API.hideWidget();
+                    };
+
+                    Tawk_API.onChatMinimized = function(){
+                        Tawk_API.hideWidget();
                     };
 
                     (function(){

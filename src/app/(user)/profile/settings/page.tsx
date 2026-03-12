@@ -5,16 +5,25 @@ import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Globe, Moon, Bell, Lock, Mail, ChevronRight, CheckCircle, AlertCircle, Loader2, X, DollarSign } from 'lucide-react';
+import { ArrowLeft, Globe, Moon, Sun, Bell, Lock, Mail, ChevronRight, CheckCircle, AlertCircle, Loader2, X, DollarSign, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-    const { profile, user, refreshProfile } = useAuth();
+    const { user, profile, refreshProfile, signOut } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { t, availableLanguages, setLanguage: updateContextLanguage } = useLanguage();
     const { setCurrency: updateContextCurrency } = useCurrency();
     const [notifications, setNotifications] = useState(true);
+    const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+    
+    // Load local settings
+    useEffect(() => {
+        const savedNotifications = localStorage.getItem('notifications_enabled');
+        if (savedNotifications !== null) {
+            setNotifications(savedNotifications === 'true');
+        }
+    }, []);
     
     // Selection states
     const [language, setLanguage] = useState(profile?.language || 'English');
@@ -27,7 +36,13 @@ export default function SettingsPage() {
         }
     }, [profile]);
 
-    const handleUpdateProfileSetting = async (field: 'language' | 'currency', value: string) => {
+    const handleUpdateProfileSetting = async (field: 'language' | 'currency' | 'notifications_enabled', value: any) => {
+        if (field === 'notifications_enabled') {
+            setNotifications(value);
+            localStorage.setItem('notifications_enabled', String(value));
+            return;
+        }
+
         if (!user) return;
         try {
             const { error } = await supabase.from('profiles').update({ [field]: value }).eq('id', user.id);
@@ -36,12 +51,13 @@ export default function SettingsPage() {
             if (field === 'language') {
                 setLanguage(value);
                 updateContextLanguage(value as any);
-            } else {
+            } else if (field === 'currency') {
                 setCurrency(value);
                 updateContextCurrency(value as any);
+            } else if (field === 'notifications_enabled') {
+                setNotifications(value);
             }
             
-            // Refresh global profile state to trigger context updates
             await refreshProfile();
         } catch (error: any) {
             console.error(`Failed to update ${field}:`, error.message);
@@ -139,9 +155,11 @@ export default function SettingsPage() {
                     </div>
                     <button
                         onClick={toggleTheme}
-                        className={`w-12 h-6 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-primary' : 'bg-text-secondary/20'}`}
+                        className={`w-14 h-7 rounded-full transition-all duration-300 relative ${theme === 'dark' ? 'bg-primary shadow-[0_0_20px_rgba(157,80,187,0.3)]' : 'bg-slate-200'}`}
                     >
-                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-surface shadow-md transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                        <div className={`absolute top-1 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-500 ${theme === 'dark' ? 'translate-x-8 bg-white rotate-0' : 'translate-x-1 bg-slate-600 rotate-[360deg]'}`}>
+                            {theme === 'dark' ? <Sun size={10} className="text-primary" /> : <Moon size={10} className="text-white" />}
+                        </div>
                     </button>
                 </div>
 
@@ -151,10 +169,10 @@ export default function SettingsPage() {
                         <span className="text-sm font-medium text-text-primary">{t('notifications')}</span>
                     </div>
                     <button
-                        onClick={() => setNotifications(!notifications)}
-                        className={`w-12 h-6 rounded-full transition-colors relative ${notifications ? 'bg-primary' : 'bg-text-secondary/20'}`}
+                        onClick={() => handleUpdateProfileSetting('notifications_enabled', !notifications)}
+                        className={`w-12 h-6 rounded-full transition-all duration-300 relative ${notifications ? 'bg-success shadow-[0_0_15px_rgba(0,255,136,0.3)]' : 'bg-text-secondary/20'}`}
                     >
-                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-surface shadow-md transition-transform ${notifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${notifications ? 'translate-x-6' : 'translate-x-0.5'}`} />
                     </button>
                 </div>
 
@@ -190,6 +208,13 @@ export default function SettingsPage() {
                     <h2 className="text-xs font-black text-text-secondary uppercase tracking-[0.2em]">{t('account_security')}</h2>
                 </div>
 
+                <button 
+                    onClick={() => setShowSignOutConfirm(true)}
+                    className="w-full mt-8 p-4 rounded-2xl bg-danger/10 border border-danger/20 text-danger font-black uppercase tracking-[0.2em] text-xs hover:bg-danger/20 transition-all flex items-center justify-center gap-3 group"
+                >
+                    <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+                    {t('sign_out')}
+                </button>
                 <button 
                     onClick={() => setActiveModal('email')}
                     className="w-full flex items-center justify-between p-4 hover:bg-black/[0.02] transition-colors group text-left"
@@ -331,15 +356,21 @@ export default function SettingsPage() {
                                     { code: 'EUR', name: 'Euro', symbol: '€' },
                                     { code: 'GBP', name: 'British Pound', symbol: '£' },
                                     { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-                                    { code: 'CAD', name: 'Canadian Dollar', symbol: '$' }
+                                    { code: 'CAD', name: 'Canadian Dollar', symbol: '$' },
+                                    { code: 'CHF', name: 'Swiss Franc', symbol: 'Fr' },
+                                    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+                                    { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
+                                    { code: 'GHC', name: 'Ghana Cedi', symbol: 'GH₵' },
+                                    { code: 'AED', name: 'UAE Dirham', symbol: 'Dh' },
+                                    { code: 'BTC', name: 'Bitcoin', symbol: '₿' }
                                 ].map((opt) => (
                                     <button 
                                         key={opt.code}
                                         onClick={() => { handleUpdateProfileSetting('currency', opt.code); setActiveModal(null); }}
                                         className={`flex items-center justify-between p-4 rounded-xl transition-all ${currency === opt.code ? 'bg-primary/20 border border-primary/30 text-text-primary' : 'hover:bg-black/5 dark:hover:bg-white/5 text-text-secondary'}`}
                                     >
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-bold">{opt.code} - {opt.name}</span>
+                                        <div className="flex flex-col items-start text-left">
+                                            <span className="font-bold text-sm">{opt.code} - {opt.name}</span>
                                             <span className="text-[10px] opacity-60 uppercase">{opt.symbol} Base</span>
                                         </div>
                                         {currency === opt.code && <CheckCircle size={16} className="text-primary-light" />}
@@ -347,6 +378,38 @@ export default function SettingsPage() {
                                 ))}
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Sign Out Confirmation Modal */}
+            {showSignOutConfirm && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 sm:p-0">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setShowSignOutConfirm(false)} />
+                    <div className="relative glass-card-strong w-full max-w-sm p-8 animate-scale-up border-danger/20">
+                        <div className="flex flex-col items-center text-center space-y-6">
+                            <div className="w-20 h-20 rounded-full bg-danger/10 flex items-center justify-center text-danger animate-pulse">
+                                <LogOut size={40} />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Confirm Sign Out</h3>
+                                <p className="text-sm text-text-secondary font-medium">Are you sure you want to end your session?</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 w-full">
+                                <button 
+                                    onClick={() => setShowSignOutConfirm(false)}
+                                    className="p-4 rounded-xl bg-text-primary/5 text-text-primary font-bold hover:bg-text-primary/10 transition-colors uppercase text-xs tracking-widest"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={() => signOut()}
+                                    className="p-4 rounded-xl bg-danger text-white font-black hover:bg-danger-hover transition-colors shadow-lg shadow-danger/30 uppercase text-xs tracking-widest"
+                                >
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

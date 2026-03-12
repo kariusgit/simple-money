@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X, CheckCircle, Loader2 } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
+import Portal from './Portal';
 
 interface ItemDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     item: {
+        id: string | number;
         title: string;
         image_url: string;
         description: string;
@@ -30,22 +31,18 @@ export default function ItemDetailModal({
     format,
     isSubmitting
 }: ItemDetailModalProps) {
-    const [mounted, setMounted] = useState(false);
+    if (!isOpen || !item) return null;
 
-    useEffect(() => {
-        setMounted(true);
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-        return () => { document.body.style.overflow = 'unset'; };
-    }, [isOpen]);
-
-    if (!mounted || !isOpen || !item) return null;
-
-    // Use the logic expected by the backend
-    const displayProductValue = Math.floor(balance * 0.8);
+    // Randomize product value between 40% and 85% of balance to ensure uniqueness
+    const displayProductValue = React.useMemo(() => {
+        if (!balance || balance <= 0) return 0;
+        // Seeded-ish randomization: use balance and item title to keep it consistent while modal is open 
+        // but unique per task. 
+        const min = 0.40;
+        const max = 0.85;
+        const randomFactor = Math.random() * (max - min) + min;
+        return Math.floor(balance * randomFactor);
+    }, [balance, item?.id]);
 
     const handleSubmit = async () => {
         if (isSubmitting) return;
@@ -56,86 +53,94 @@ export default function ItemDetailModal({
         }
     };
 
-    const modalContent = (
-        <div
-            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300 md:pl-72"
-            onClick={onClose}
-        >
+    return (
+        <Portal>
             <div
-                className="bg-surface dark:bg-[#120a1d] w-full max-w-sm max-h-[85vh] rounded-[40px] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] border border-white/5 animate-fade-in relative flex flex-col"
-                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-all duration-300"
+                onClick={onClose}
             >
-                {/* Header Area */}
-                <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-60">Verification Stage</span>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-                        disabled={isSubmitting}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {/* Scrollable Body */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    <div className="w-full aspect-square rounded-3xl overflow-hidden mb-8 bg-white/5 border border-white/5 shadow-inner">
-                        <img
-                            src={item.image_url}
-                            alt={item.title}
-                            className="w-full h-full object-contain p-6"
-                        />
+                <div
+                    className="bg-surface dark:bg-[#0c0612] w-full max-w-sm rounded-[32px] overflow-hidden shadow-[0_50px_140px_rgba(0,0,0,0.95)] border border-white/10 animate-scale-in relative flex flex-col md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header Area */}
+                    <div className="p-6 border-b border-white/5 flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80">Processing Task</span>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col items-center text-center w-full">
-                        <h3 className="text-xl font-black text-text-primary mb-2 leading-tight">{item.title}</h3>
-                        <p className="text-xs text-text-secondary mb-8 leading-relaxed opacity-70 italic px-4">
-                            Matching this high-frequency product sequence for global merchant optimization.
-                        </p>
-
-                        <div className="w-full space-y-4">
-                            <div className="flex justify-between items-center p-5 rounded-[24px] bg-white/5 border border-white/5">
-                                <div className="flex flex-col items-start text-left">
-                                    <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-40">Product Value</span>
-                                    <span className="text-lg font-black text-text-primary">{format(displayProductValue)}</span>
+                    {/* High-Quality Premium Arrangement */}
+                    <div className="p-6 pb-2">
+                        <div className="flex gap-5 mb-8 items-start">
+                            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/5 p-2 shrink-0 shadow-inner">
+                                <img
+                                    src={item.image_url}
+                                    alt={item.title}
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2.5 pt-1 flex-1">
+                                <h3 className="text-[15px] font-black text-text-primary leading-tight uppercase tracking-tight line-clamp-2 drop-shadow-sm">
+                                    {item.title}
+                                </h3>
+                                <div className="flex gap-2">
+                                    <span className="px-3 py-1 rounded-lg bg-primary/20 text-[9px] font-black text-primary uppercase tracking-[0.2em] border border-primary/20 shadow-sm">Active</span>
+                                    <span className="px-3 py-1 rounded-lg bg-success/20 text-[9px] font-black text-success uppercase tracking-[0.2em] border border-success/20 shadow-sm">Verified</span>
                                 </div>
-                                <div className="h-8 w-px bg-white/10 mx-2" />
-                                <div className="flex flex-col items-end text-right">
-                                    <span className="text-[10px] font-black text-success uppercase tracking-widest opacity-60">Reward</span>
-                                    <span className="text-lg font-black text-success">+{format(displayProductValue * commissionRate)}</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-0.5 p-6 rounded-[32px] bg-black/60 border border-white/5 shadow-[inset_0_4px_25px_rgba(0,0,0,0.7)] mb-8">
+                            <div className="flex flex-col items-center">
+                                <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.25em] opacity-40 mb-2.5">Value</span>
+                                <span className="text-[14px] font-black text-text-primary tracking-tight">{format(displayProductValue)}</span>
+                                <div className="flex items-center gap-1.5 mt-2 opacity-60">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-success/50" />
+                                    <span className="text-[7px] font-bold text-text-secondary uppercase tracking-widest">USDT</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-center border-x border-white/10 px-2">
+                                <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.25em] opacity-40 mb-2.5">Rate</span>
+                                <span className="text-[14px] font-black text-primary tracking-tight">{(commissionRate * 100).toFixed(2)}%</span>
+                                <span className="text-[7px] font-black text-primary/70 uppercase mt-2 tracking-tighter">REBATE</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.25em] opacity-40 mb-2.5">Profit</span>
+                                <span className="text-[14px] font-black text-success tracking-tight">+{format(displayProductValue * commissionRate)}</span>
+                                <div className="flex items-center gap-1.5 mt-2 opacity-60">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-success/50 animate-pulse" />
+                                    <span className="text-[7px] font-bold text-text-secondary uppercase tracking-widest">USDT</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Fixed Footer Button */}
-                <div className="p-8 pt-4">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="w-full py-5 rounded-[24px] bg-gradient-to-r from-primary to-accent text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="animate-spin" size={20} /> Optimizing...
-                            </>
-                        ) : (
-                            <>
-                                SUBMIT TASK <CheckCircle size={20} />
-                            </>
-                        )}
-                    </button>
-                    <p className="text-[9px] text-center text-text-secondary font-bold opacity-30 mt-4 uppercase tracking-widest">
-                        Secured End-to-End Encryption Enabled
-                    </p>
+                    {/* Fixed Footer Button */}
+                    <div className="p-8 pt-4">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="w-full py-5 rounded-[24px] bg-gradient-to-r from-primary to-accent text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="animate-spin" size={20} /> Optimizing...
+                                </>
+                            ) : (
+                                <>
+                                    SUBMIT TASK <ArrowRight size={20} />
+                                </>
+                            )}
+                        </button>
+                        <p className="text-[8px] text-center text-text-secondary font-black opacity-30 mt-4 uppercase tracking-[0.3em]">
+                            <span className="inline-block w-1 h-1 rounded-full bg-success mr-2 animate-pulse" />
+                            Secured Channel
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
-
-    return createPortal(modalContent, document.body);
 }

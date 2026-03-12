@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X, CheckCircle, Zap, TrendingUp, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { CheckCircle, Zap, TrendingUp, ShieldCheck } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
+import Portal from './Portal';
 
 export interface BundlePackage {
     id: string;
@@ -32,90 +32,79 @@ export default function BundledPackageModal({
     onAccept
 }: BundledPackageModalProps) {
     const { format } = useCurrency();
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-        return () => { document.body.style.overflow = 'unset'; };
-    }, [isOpen]);
+    if (!isOpen || !bundle) return null;
 
-    if (!mounted || !isOpen || !bundle) return null;
+    return (
+        <Portal>
+            <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
+                <div
+                    className="bg-surface dark:bg-[#0f0a15] w-full max-w-sm rounded-[32px] overflow-hidden shadow-[0_50px_140px_rgba(0,0,0,1)] border border-amber-500/30 animate-scale-in relative flex flex-col md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Visual Top Bar */}
+                    <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
 
-    const modalContent = (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl transition-all duration-300 md:pl-72">
-            <div
-                className="bg-surface dark:bg-[#0f0a15] w-full max-w-sm max-h-[85vh] rounded-[40px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] border border-amber-500/20 animate-fade-in relative flex flex-col"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Visual Top Bar */}
-                <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
-
-                {/* Scrollable Body */}
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-                    <div className="flex flex-col items-center">
-                        <div className="w-24 h-24 rounded-[32px] bg-amber-500/20 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(245,158,11,0.3)] border border-amber-500/20">
-                            <Zap size={40} className="text-amber-500 fill-amber-500/20 animate-pulse" />
-                        </div>
-
-                        <div className="text-center mb-10">
-                            <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em] mb-3 block">
-                                Combined Sequence Activation
-                            </span>
-                            <h3 className="text-3xl font-black text-white mb-4 italic tracking-tight">Super Optimization!</h3>
-                            <p className="text-sm text-text-secondary leading-relaxed opacity-70 px-4">
-                                {bundle.description || "You've successfully triggered a high-yield bundle sequence. These are priority matching cycles for institutional merchants."}
-                            </p>
-                        </div>
-
-                        <div className="w-full space-y-4">
-                            <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 flex items-center justify-between shadow-inner">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500">
-                                        <TrendingUp size={20} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-40">Total Value</span>
-                                        <span className="text-xl font-black text-white">{format(bundle.totalAmount)}</span>
-                                    </div>
-                                </div>
+                    {/* Compact Body */}
+                    <div className="p-8 pb-2">
+                        <div className="flex flex-col items-center">
+                            <div className="w-24 h-24 rounded-[32px] bg-amber-500/20 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(245,158,11,0.3)] border border-amber-500/20">
+                                <Zap size={40} className="text-amber-500 fill-amber-500/20 animate-pulse" />
                             </div>
 
-                            <div className="p-6 rounded-[32px] bg-success/10 border border-success/20 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-2xl bg-success/20 text-success">
-                                        <CheckCircle size={20} />
+                            <div className="text-center mb-10">
+                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em] mb-3 block">
+                                    Combined Sequence Activation
+                                </span>
+                                <h3 className="text-3xl font-black text-white mb-4 italic tracking-tight">Super Optimization!</h3>
+                                <p className="text-sm text-text-secondary leading-relaxed opacity-70 px-4">
+                                    {bundle.description || "You've successfully triggered a high-yield bundle sequence. These are priority matching cycles for institutional merchants."}
+                                </p>
+                            </div>
+
+                            <div className="w-full space-y-4">
+                                <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 flex items-center justify-between shadow-inner">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500">
+                                            <TrendingUp size={20} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-40">Total Value</span>
+                                            <span className="text-xl font-black text-white">{format(bundle.totalAmount)}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-success uppercase tracking-[0.2em] opacity-60">Locked Profit</span>
-                                        <span className="text-xl font-black text-success">+{format(bundle.bonusAmount)}</span>
+                                </div>
+
+                                <div className="p-6 rounded-[32px] bg-success/10 border border-success/20 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-2xl bg-success/20 text-success">
+                                            <CheckCircle size={20} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-success uppercase tracking-[0.2em] opacity-60">Locked Profit</span>
+                                            <span className="text-xl font-black text-success">+{format(bundle.bonusAmount)}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Fixed Footer */}
-                <div className="p-10 pt-4 flex flex-col gap-4">
-                    <button
-                        onClick={() => onAccept(bundle)}
-                        className="w-full py-5 rounded-[28px] bg-gradient-to-br from-amber-500 to-amber-700 text-white font-black uppercase tracking-[0.25em] text-[11px] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(245,158,11,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all"
-                    >
-                        START SEQUENCE <ShieldCheck size={20} />
-                    </button>
+                    {/* Fixed Footer */}
+                    <div className="p-10 pt-4 flex flex-col gap-4">
+                        <button
+                            onClick={() => onAccept(bundle)}
+                            className="w-full py-5 rounded-[28px] bg-gradient-to-br from-amber-500 to-amber-700 text-white font-black uppercase tracking-[0.25em] text-[11px] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(245,158,11,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all"
+                        >
+                            START SEQUENCE <ShieldCheck size={20} />
+                        </button>
 
-                    <p className="text-[9px] text-center text-text-secondary font-bold opacity-30 uppercase tracking-[0.2em] mt-4 px-6 leading-relaxed">
-                        Funds will remain in the secure clearance node until the full sequence is finalized.
-                    </p>
+                        <p className="text-[9px] text-center text-text-secondary font-bold opacity-30 uppercase tracking-[0.2em] mt-4 px-6 leading-relaxed">
+                            Funds will remain in the secure clearance node until the full sequence is finalized.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
-
-    return createPortal(modalContent, document.body);
 }

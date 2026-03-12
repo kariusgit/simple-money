@@ -36,13 +36,13 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     return (
         <>
             <ActivityFeed />
-            <div className="min-h-screen bg-transparent flex transition-colors duration-300">
+            <div className="h-screen flex overflow-hidden transition-colors duration-300 bg-transparent">
                 {/* Desktop Sidebar */}
                 <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-                <div className="flex-1 flex flex-col md:pl-72 min-w-0">
+                <div className="flex-1 flex flex-col md:pl-72 min-w-0 h-full relative">
                     <Header onMenuClick={() => setSidebarOpen(true)} />
-                    <main className="flex-1 pb-24 px-4 md:px-8 w-full relative z-10">
+                    <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-32 px-4 md:px-8 w-full relative z-10">
                         <div className="max-w-7xl mx-auto relative h-full">
                             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
                             <div className="relative pt-6">

@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import { useSiteSettings } from './SettingsContext';
 import { supabase } from '@/lib/supabase';
 
-export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD';
+export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF' | 'AUD' | 'SGD' | 'AED' | 'ZAR' | 'BRL' | 'GHC' | 'BTC';
 
 interface Currency {
     code: CurrencyCode;
@@ -19,6 +19,14 @@ const currencies: Record<CurrencyCode, Currency> = {
     GBP: { code: 'GBP', symbol: '£', rate: 0.79 },
     JPY: { code: 'JPY', symbol: '¥', rate: 150.5 },
     CAD: { code: 'CAD', symbol: '$', rate: 1.35 },
+    CHF: { code: 'CHF', symbol: 'Fr', rate: 0.88 },
+    AUD: { code: 'AUD', symbol: 'A$', rate: 1.52 },
+    SGD: { code: 'SGD', symbol: 'S$', rate: 1.34 },
+    AED: { code: 'AED', symbol: 'Dh', rate: 3.67 },
+    ZAR: { code: 'ZAR', symbol: 'R', rate: 19.05 },
+    BRL: { code: 'BRL', symbol: 'R$', rate: 4.97 },
+    GHC: { code: 'GHC', symbol: 'GH₵', rate: 12.85 },
+    BTC: { code: 'BTC', symbol: '₿', rate: 0.000015 }, // Example rate
 };
 
 interface CurrencyContextType {
@@ -79,6 +87,9 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
         const converted = convert(amount);
         if (currentCurrency.code === 'JPY') {
             return `${currentCurrency.symbol}${Math.round(converted).toLocaleString()}`;
+        }
+        if (currentCurrency.code === 'BTC') {
+            return `${currentCurrency.symbol}${converted.toFixed(8)}`;
         }
         return `${currentCurrency.symbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };

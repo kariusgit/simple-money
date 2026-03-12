@@ -29,7 +29,8 @@ import {
     Users,
     TrendingDown,
     Award,
-    Lock
+    Lock,
+    Headset
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -134,15 +135,15 @@ export default function HomePage() {
             </div>
 
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Available Balance Card */}
-                <div className="glass-card-glow p-8 group relative overflow-hidden transition-all duration-500 hover:scale-[1.02]">
+                <div className="glass-card-glow p-8 group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] sm:col-span-2 lg:col-span-1">
                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500 origin-top-right">
                         <TrendingUp size={80} className="text-primary" />
                     </div>
                     <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-70">{t('available_balance')}</p>
                     <div className="flex items-baseline gap-1 mb-6">
-                        <h2 className="text-5xl md:text-6xl font-black text-text-primary tracking-tighter drop-shadow-md">
+                        <h2 className="text-4xl md:text-5xl font-black text-text-primary tracking-tighter drop-shadow-md">
                             {format(profile?.wallet_balance || 0)}
                         </h2>
                     </div>
@@ -159,13 +160,30 @@ export default function HomePage() {
                     </div>
                     <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-70">{t('today_profit')}</p>
                     <div className="flex items-baseline gap-1 mb-6">
-                        <h2 className="text-5xl md:text-6xl font-black text-accent tracking-tighter drop-shadow-md">
+                        <h2 className="text-4xl md:text-5xl font-black text-accent tracking-tighter drop-shadow-md">
                             {format(profile?.profit || 0)}
                         </h2>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 w-fit">
                         <TrendingUp className="text-accent" size={12} />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">{t('secured_rebate')}</span>
+                    </div>
+                </div>
+
+                {/* Referral Bonus Card */}
+                <div className="glass-card p-8 group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] dark:bg-gradient-to-br dark:from-black/20 dark:to-transparent">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 dark:opacity-10 group-hover:scale-110 transition-transform duration-500 origin-top-right">
+                        <Users size={80} className="text-success" />
+                    </div>
+                    <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1 opacity-70">{t('referral_bonus')}</p>
+                    <div className="flex items-baseline gap-1 mb-6">
+                        <h2 className="text-4xl md:text-5xl font-black text-success tracking-tighter drop-shadow-md">
+                            {format(profile?.referral_earned || 0)}
+                        </h2>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20 w-fit">
+                        <Sparkles className="text-success" size={12} />
+                        <span className="text-[10px] font-black text-success uppercase tracking-widest">Network Earned</span>
                     </div>
                 </div>
             </div>
@@ -322,7 +340,8 @@ export default function HomePage() {
                         { icon: ArrowDownLeft, label: t('deposit'), color: 'text-primary', bg: 'bg-primary/10', href: '/deposit' },
                         { icon: ArrowUpRight, label: t('withdraw'), color: 'text-accent', bg: 'bg-accent/10', href: '/withdraw' },
                         { icon: Building2, label: t('institutional'), color: 'text-yellow-500', bg: 'bg-yellow-500/10', href: '/company' },
-                        { icon: FileText, label: 'Certificate', color: 'text-purple-500', bg: 'bg-purple-500/10', href: '/certificate' },
+                        { icon: Headset, label: 'Concierge Hub', color: 'text-purple-500', bg: 'bg-purple-500/10', href: '/concierge' },
+                        { icon: FileText, label: 'Certificate', color: 'text-success', bg: 'bg-success/10', href: '/certificate' },
                     ].map((item, i) => (
                         <Link key={i} href={item.href} className="group">
                             <div className="glass-card p-6 flex flex-col items-center gap-3 hover:bg-black/5 dark:hover:bg-white/5 transition-all text-center h-full border border-transparent hover:border-black/5 dark:hover:border-white/5">
@@ -376,7 +395,7 @@ export default function HomePage() {
                         { icon: Play, label: t('start_tasks_label'), desc: t('click_to_optimize_now'), href: '/start' },
                         { icon: Clock, label: t('activity_records_label'), desc: t('view_recent_settlements'), href: '/record' },
                         { icon: Users, label: t('my_profile_label'), desc: t('manage_account_identity'), href: '/profile' },
-                        { icon: Building2, label: t('faq_label'), desc: t('platform_architecture_guide'), href: '/faq' },
+                        { icon: Headset, label: 'Concierge Hub', desc: 'Protocol support & network help', href: '/concierge' },
                         { icon: ShieldCheck, label: t('legal_governance_label'), desc: t('compliance_framework'), href: '/rules' }
                     ].map((item, i) => (
                         <Link 

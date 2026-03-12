@@ -38,19 +38,9 @@ export default function InvitePage() {
                 .select('*', { count: 'exact', head: true })
                 .eq('referred_by', profile.id);
 
-            // 2. Get total commission earned from referrals
-            const { data: commissions } = await supabase
-                .from('transactions')
-                .select('amount')
-                .eq('user_id', profile.id)
-                .eq('type', 'commission')
-                .ilike('description', '%Referral%');
-
-            const totalCommission = commissions?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
-
             setStats({
                 totalReferrals: referralCount || 0,
-                commissionEarned: totalCommission
+                commissionEarned: profile.referral_earned || 0
             });
         };
 

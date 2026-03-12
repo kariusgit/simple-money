@@ -21,6 +21,7 @@ export interface Profile {
     language: string;
     currency: string;
     pending_bundle: any | null;
+    notifications_enabled: boolean;
     created_at: string;
 }
 
