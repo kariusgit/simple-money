@@ -1,11 +1,15 @@
--- Migration: Enhanced Security Checks for complete_user_task (The "Two Checks")
--- This version fixes the "could not choose best candidate" error and allows pending task submission during deficits.
+-- FINAL SECURITY MIGRATION: The "Two Checks" & Function Resolution
+-- This migration fixes the "could not choose best candidate function" error by clearing old signatures
+-- and enforces the platform security rules for task completion.
 
--- CLEANUP: Drop all possible previous signatures to resolve ambiguity
+-- 1. CLEANUP OLD SIGNATURES (CRITICAL to fix "could not choose best candidate" error)
 DROP FUNCTION IF EXISTS public.complete_user_task(INT);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, DECIMAL);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, DECIMAL, DECIMAL);
+DROP FUNCTION IF EXISTS public.complete_user_task(INT, NUMERIC);
+DROP FUNCTION IF EXISTS public.complete_user_task(INT, NUMERIC, NUMERIC);
 
+-- 2. CREATE UNIFIED FUNCTION
 CREATE OR REPLACE FUNCTION public.complete_user_task(
     p_task_item_id INT,
     p_cost_amount DECIMAL(12,2) DEFAULT NULL
@@ -46,7 +50,7 @@ BEGIN
         RAISE EXCEPTION 'Authentication required.';
     END IF;
 
-    -- 1. Fetch profile data
+    -- A. Fetch profile data
     SELECT 
         COALESCE(p.level_id, 1), COALESCE(p.completed_count, 0), COALESCE(p.current_set, 1), 
         COALESCE(p.wallet_balance, 0.00), COALESCE(p.frozen_amount, 0.00), 
@@ -59,7 +63,7 @@ BEGIN
     FROM public.profiles p
     WHERE p.id = v_user_id;
 
-    -- 2. 24 HOUR RESET LOGIC
+    -- B. 24 HOUR RESET LOGIC
     IF NOW() - v_last_reset_at >= INTERVAL '24 hours' THEN
         v_profit := 0;
         v_current_set := 1;
@@ -67,19 +71,20 @@ BEGIN
         UPDATE public.profiles SET profit = 0, current_set = 1, last_reset_at = v_last_reset_at WHERE id = v_user_id;
     END IF;
 
-    -- 3. CHECK 1: DEFICIT SETTLEMENT (Blocks ALL Submissions including Pending)
+    -- C. CHECK 1: DEFICIT SETTLEMENT (Blocks ALL Submissions including Pending)
+    -- If balance is negative, user MUST RECHARGE or wait for admin clearance to continue.
     IF v_wallet_balance < 0 THEN
          RAISE EXCEPTION 'Account in deficit. Please settle your balance through the recharge portal or Contact customer service to clear your negative balance to continue.';
     END IF;
 
-    -- 4. CHECK FOR PENDING TASK (Order Submission)
+    -- D. CHECK FOR PENDING TASK (Order Submission)
     SELECT id, earned_amount, cost_amount, is_bundle 
     INTO v_pending_task_id, v_earned_amount, v_cost_amount, v_is_bundle_task
     FROM public.user_tasks 
     WHERE user_id = v_user_id AND task_item_id = p_task_item_id AND status = 'pending'
     LIMIT 1;
 
-    -- 5. APPLY SECURITY CHECKS (Only for NEW tasks)
+    -- E. APPLY NEW TASK SECURITY CHECKS (Only for STARTING new orders)
     IF v_pending_task_id IS NULL THEN
         -- Get level data for limits
         SELECT tasks_per_set, sets_per_day, commission_rate, price
@@ -100,7 +105,7 @@ BEGIN
             RAISE EXCEPTION 'Maximum daily sets ( % / % ) reached. Come back tomorrow!', v_sets_per_day, v_sets_per_day;
         END IF;
         
-        -- Duplicate Protection (Same item twice in 24h)
+        -- Duplicate Protection
         IF EXISTS (
             SELECT 1 FROM public.user_tasks 
             WHERE user_id = v_user_id 
@@ -111,7 +116,7 @@ BEGIN
             RAISE EXCEPTION 'Optimization detected duplicate item. Please refresh for a new match.';
         END IF;
     ELSE
-        -- If it's a PENDING task, load necessary level info for set completion detection
+        -- Load level info for pending tasks to handle set detection
         SELECT tasks_per_set, sets_per_day, commission_rate
         INTO v_tasks_per_set, v_sets_per_day, v_commission_rate
         FROM public.levels WHERE id = v_level_id;
@@ -121,7 +126,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- 5. Calculate current set progress
+    -- F. Calculate current set progress
     FOR v_levels_record IN SELECT id, tasks_per_set, sets_per_day FROM public.levels ORDER BY price ASC LOOP
         IF v_levels_record.id = v_level_id THEN EXIT; END IF;
         v_task_base_offset := v_task_base_offset + (COALESCE(v_levels_record.sets_per_day, 3) * COALESCE(v_levels_record.tasks_per_set, 40));
@@ -129,7 +134,7 @@ BEGIN
 
     v_tasks_in_current_set := v_completed_count - v_task_base_offset - ((v_current_set - 1) * v_tasks_per_set);
     
-    -- 6. TASK CALCULATION (If New)
+    -- G. TASK CALCULATION (If New)
     IF v_pending_task_id IS NULL THEN
         -- Bundle Trigger Check
         IF v_pending_bundle IS NOT NULL AND (v_tasks_in_current_set + 1) = (v_pending_bundle->>'targetIndex')::INT THEN
@@ -137,7 +142,6 @@ BEGIN
             v_earned_amount := (v_pending_bundle->>'bonusAmount')::DECIMAL;
             v_is_bundle_task := true;
         ELSE
-            -- Normal simulated price
             IF p_cost_amount IS NOT NULL AND p_cost_amount > 20 THEN
                 v_cost_amount := p_cost_amount;
             ELSE
@@ -152,8 +156,7 @@ BEGIN
 
     SELECT title INTO v_task_title FROM public.task_items WHERE id = p_task_item_id;
 
-    -- 7. UPDATE PROFILE
-    -- Release capital + profit
+    -- H. UPDATE PROFILE
     UPDATE public.profiles 
     SET 
         wallet_balance = wallet_balance + v_cost_amount + v_earned_amount,
@@ -165,7 +168,7 @@ BEGIN
     WHERE id = v_user_id
     RETURNING wallet_balance INTO v_new_wallet_balance;
 
-    -- 8. Log success
+    -- I. Log success
     IF v_pending_task_id IS NOT NULL THEN
         UPDATE public.user_tasks 
         SET status = 'completed', completed_at = NOW(), earned_amount = v_earned_amount, cost_amount = v_cost_amount, is_bundle = v_is_bundle_task
@@ -175,43 +178,21 @@ BEGIN
         VALUES (v_user_id, p_task_item_id, 'completed', v_earned_amount, v_cost_amount, v_is_bundle_task, NOW());
     END IF;
 
-    -- 9. Transaction Recording
-    INSERT INTO public.transactions (user_id, type, amount, description, status)
-    VALUES (v_user_id, 'commission', v_earned_amount, 'Optimization Reward: ' || COALESCE(v_task_title, 'Standard Task'), 'approved');
-
-    IF v_cost_amount > 0 THEN
-        INSERT INTO public.transactions (user_id, type, amount, description, status)
-        VALUES (v_user_id, 'unfreeze', v_cost_amount, 'Capital Return: ' || COALESCE(v_task_title, 'Bundle'), 'approved');
-    END IF;
-
-    -- 10. Referral Bonus (20%)
+    -- J. Referral Bonus (20%)
     IF v_referrer_id IS NOT NULL AND v_earned_amount > 0 THEN
         v_ref_bonus := ROUND((v_earned_amount * 0.20), 2);
         IF v_ref_bonus > 0 THEN
-            UPDATE public.profiles 
-            SET 
-                wallet_balance = wallet_balance + v_ref_bonus,
-                referral_earned = referral_earned + v_ref_bonus
-            WHERE id = v_referrer_id;
-
-            INSERT INTO public.transactions (user_id, type, amount, description, status)
-            VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Optimization Team Referral Bonus (20%)', 'approved');
-
-            INSERT INTO public.notifications (user_id, title, message, type)
-            VALUES (v_referrer_id, 'Bonus Received! 🎉', 'Earned $' || v_ref_bonus || ' from teammate optimization.', 'success');
+            UPDATE public.profiles SET wallet_balance = wallet_balance + v_ref_bonus, referral_earned = referral_earned + v_ref_bonus WHERE id = v_referrer_id;
+            INSERT INTO public.transactions (user_id, type, amount, description, status) VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Optimization Team Referral Bonus (20%)', 'approved');
+            INSERT INTO public.notifications (user_id, title, message, type) VALUES (v_referrer_id, 'Bonus Received!  🎉', 'Earned $' || v_ref_bonus || ' from teammate optimization.', 'success');
         END IF;
-    END IF;
-
-    -- 11. Set detection
-    IF (v_tasks_in_current_set + 1) >= v_tasks_per_set THEN
-        v_is_set_complete := true;
     END IF;
 
     RETURN json_build_object(
         'success', true,
         'earned_amount', v_earned_amount,
         'new_balance', v_new_wallet_balance,
-        'set_complete', v_is_set_complete,
+        'set_complete', (v_tasks_in_current_set + 1 >= v_tasks_per_set),
         'is_bundle', v_is_bundle_task
     );
 END;
