@@ -45,7 +45,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                     <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-32 px-4 md:px-8 w-full relative z-10">
                         <div className="max-w-7xl mx-auto relative h-full">
                             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-                            <div className="relative pt-6">
+                            <div className="relative">
                                 <AnimatePage key={pathname}>
                                     {children}
                                     <Footer />

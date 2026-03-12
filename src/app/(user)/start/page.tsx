@@ -123,12 +123,13 @@ export default function StartPage() {
                     availableItems = itemsRes.data;
                 } else if (availableItems.length === 0) {
                     availableItems = Array.from({ length: 24 }).map((_, i) => ({
-                        id: 0, // Fallback ID
+                        id: 0,
                         title: i % 2 === 0 ? 'Premium electronics hub' : 'Luxury timepiece collection',
                         image_url: `https://picsum.photos/seed/prod-${i}/400/400`,
                         category: 'premium',
-                        price: 150 + (i * 10),
-                        commission_rate: 0.0045,
+                        description: 'High-quality matched asset for optimization',
+                        is_active: true,
+                        created_at: new Date().toISOString(),
                         level_id: profile.level_id
                     }));
                 }
@@ -249,6 +250,9 @@ export default function StartPage() {
                         title: pb.taskItem.title,
                         image_url: pb.taskItem.image_url,
                         category: pb.taskItem.category,
+                        description: pb.taskItem.description || '',
+                        is_active: true,
+                        created_at: new Date().toISOString(),
                         level_id: profile?.level_id || 1
                     } as TaskItem;
 
@@ -358,7 +362,7 @@ export default function StartPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto pb-12 relative min-h-screen">
+        <div className="max-w-6xl mx-auto pb-12 relative mt-[-24px]">
             <div className="absolute top-1/4 -left-20 w-80 h-80 glass-prism rounded-full opacity-20 pointer-events-none blur-xl animate-pulse-glow" />
             <div className="absolute bottom-1/4 -right-20 w-96 h-96 glass-prism rounded-full opacity-20 pointer-events-none blur-2xl animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
 
