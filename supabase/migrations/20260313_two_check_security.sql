@@ -1,15 +1,17 @@
 -- FINAL SECURITY MIGRATION: The "Two Checks" & Function Resolution
--- This migration fixes the "could not choose best candidate function" error by clearing old signatures
--- and enforces the platform security rules for task completion.
+-- 1. Fixed "Function Ambiguity" by dropping old signatures.
+-- 2. Fixed "Price Jumping" bug where capital was added back to normal tasks.
+-- 3. Implemented Global Deficit Check (blocks ALL until balance >= 0).
+-- 4. Implemented Level Minimum Balance Check (starting new tasks only).
 
--- 1. CLEANUP OLD SIGNATURES (CRITICAL to fix "could not choose best candidate" error)
+-- CLEANUP OLD SIGNATURES
 DROP FUNCTION IF EXISTS public.complete_user_task(INT);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, DECIMAL);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, DECIMAL, DECIMAL);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, NUMERIC);
 DROP FUNCTION IF EXISTS public.complete_user_task(INT, NUMERIC, NUMERIC);
 
--- 2. CREATE UNIFIED FUNCTION
+-- CREATE UNIFIED FUNCTION
 CREATE OR REPLACE FUNCTION public.complete_user_task(
     p_task_item_id INT,
     p_cost_amount DECIMAL(12,2) DEFAULT NULL
@@ -71,8 +73,7 @@ BEGIN
         UPDATE public.profiles SET profit = 0, current_set = 1, last_reset_at = v_last_reset_at WHERE id = v_user_id;
     END IF;
 
-    -- C. CHECK 1: DEFICIT SETTLEMENT (Blocks ALL Submissions including Pending)
-    -- If balance is negative, user MUST RECHARGE or wait for admin clearance to continue.
+    -- C. CHECK 1: DEFICIT SETTLEMENT (Strict - Blocks ALL Submissions)
     IF v_wallet_balance < 0 THEN
          RAISE EXCEPTION 'Account in deficit. Please settle your balance through the recharge portal or Contact customer service to clear your negative balance to continue.';
     END IF;
@@ -84,18 +85,18 @@ BEGIN
     WHERE user_id = v_user_id AND task_item_id = p_task_item_id AND status = 'pending'
     LIMIT 1;
 
-    -- E. APPLY NEW TASK SECURITY CHECKS (Only for STARTING new orders)
+    -- E. GET LEVEL DATA
+    SELECT tasks_per_set, sets_per_day, commission_rate, price
+    INTO v_tasks_per_set, v_sets_per_day, v_commission_rate, v_level_price
+    FROM public.levels WHERE id = v_level_id;
+
+    IF v_tasks_per_set IS NULL THEN
+        v_tasks_per_set := 40; v_sets_per_day := 3; v_commission_rate := 0.0045; v_level_price := 65;
+    END IF;
+
+    -- F. APPLY NEW TASK SECURITY CHECKS (Only for STARTING new orders)
     IF v_pending_task_id IS NULL THEN
-        -- Get level data for limits
-        SELECT tasks_per_set, sets_per_day, commission_rate, price
-        INTO v_tasks_per_set, v_sets_per_day, v_commission_rate, v_level_price
-        FROM public.levels WHERE id = v_level_id;
-
-        IF v_tasks_per_set IS NULL THEN
-            v_tasks_per_set := 40; v_sets_per_day := 3; v_commission_rate := 0.0045; v_level_price := 65;
-        END IF;
-
-        -- CHECK 2: MINIMUM BALANCE REQUIREMENT
+        -- CHECK 2: LEVEL MINIMUM BALANCE REQUIREMENT
         IF v_wallet_balance < v_level_price THEN
             RAISE EXCEPTION 'Insufficient balance to start new task. Minimum required for Level % is $%', v_level_id, v_level_price;
         END IF;
@@ -115,18 +116,9 @@ BEGIN
         ) THEN
             RAISE EXCEPTION 'Optimization detected duplicate item. Please refresh for a new match.';
         END IF;
-    ELSE
-        -- Load level info for pending tasks to handle set detection
-        SELECT tasks_per_set, sets_per_day, commission_rate
-        INTO v_tasks_per_set, v_sets_per_day, v_commission_rate
-        FROM public.levels WHERE id = v_level_id;
-        
-        IF v_tasks_per_set IS NULL THEN
-            v_tasks_per_set := 40; v_sets_per_day := 3;
-        END IF;
     END IF;
 
-    -- F. Calculate current set progress
+    -- G. Calculate current set progress
     FOR v_levels_record IN SELECT id, tasks_per_set, sets_per_day FROM public.levels ORDER BY price ASC LOOP
         IF v_levels_record.id = v_level_id THEN EXIT; END IF;
         v_task_base_offset := v_task_base_offset + (COALESCE(v_levels_record.sets_per_day, 3) * COALESCE(v_levels_record.tasks_per_set, 40));
@@ -134,7 +126,7 @@ BEGIN
 
     v_tasks_in_current_set := v_completed_count - v_task_base_offset - ((v_current_set - 1) * v_tasks_per_set);
     
-    -- G. TASK CALCULATION (If New)
+    -- H. TASK CALCULATION (If New Task)
     IF v_pending_task_id IS NULL THEN
         -- Bundle Trigger Check
         IF v_pending_bundle IS NOT NULL AND (v_tasks_in_current_set + 1) = (v_pending_bundle->>'targetIndex')::INT THEN
@@ -142,12 +134,12 @@ BEGIN
             v_earned_amount := (v_pending_bundle->>'bonusAmount')::DECIMAL;
             v_is_bundle_task := true;
         ELSE
+            -- Normal simulated price (Strictly 40-85%)
             IF p_cost_amount IS NOT NULL AND p_cost_amount > 20 THEN
                 v_cost_amount := p_cost_amount;
             ELSE
                 v_random_price := (v_wallet_balance * (0.40 + random() * 0.45));
-                IF v_random_price < 50 AND v_wallet_balance >= 65 THEN v_random_price := v_wallet_balance * 0.8; END IF;
-                v_cost_amount := v_random_price;
+                v_cost_amount := ROUND(v_random_price, 2);
             END IF;
             v_earned_amount := ROUND((v_cost_amount * v_commission_rate), 2);
             v_is_bundle_task := false;
@@ -156,10 +148,12 @@ BEGIN
 
     SELECT title INTO v_task_title FROM public.task_items WHERE id = p_task_item_id;
 
-    -- H. UPDATE PROFILE
+    -- I. UPDATE PROFILE (Corrected logic for wallet_balance)
     UPDATE public.profiles 
     SET 
-        wallet_balance = wallet_balance + v_cost_amount + v_earned_amount,
+        -- RETURN CAPITAL ONLY if it was previously subtracted (Pending Task or New Bundle)
+        -- Normal Tasks: only add bonus.
+        wallet_balance = wallet_balance + (CASE WHEN v_is_bundle_task OR v_pending_task_id IS NOT NULL THEN v_cost_amount ELSE 0 END) + v_earned_amount,
         profit = profit + v_earned_amount,
         total_profit = total_profit + v_earned_amount,
         frozen_amount = CASE WHEN v_is_bundle_task OR v_pending_task_id IS NOT NULL THEN GREATEST(0, frozen_amount - (v_cost_amount + v_earned_amount)) ELSE frozen_amount END,
@@ -168,7 +162,7 @@ BEGIN
     WHERE id = v_user_id
     RETURNING wallet_balance INTO v_new_wallet_balance;
 
-    -- I. Log success
+    -- J. Log success
     IF v_pending_task_id IS NOT NULL THEN
         UPDATE public.user_tasks 
         SET status = 'completed', completed_at = NOW(), earned_amount = v_earned_amount, cost_amount = v_cost_amount, is_bundle = v_is_bundle_task
@@ -178,7 +172,7 @@ BEGIN
         VALUES (v_user_id, p_task_item_id, 'completed', v_earned_amount, v_cost_amount, v_is_bundle_task, NOW());
     END IF;
 
-    -- J. Referral Bonus (20%)
+    -- K. Referral Bonus (20%)
     IF v_referrer_id IS NOT NULL AND v_earned_amount > 0 THEN
         v_ref_bonus := ROUND((v_earned_amount * 0.20), 2);
         IF v_ref_bonus > 0 THEN
