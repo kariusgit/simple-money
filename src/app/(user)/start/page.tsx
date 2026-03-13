@@ -439,7 +439,7 @@ export default function StartPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto px-4 pb-12 relative start-container-padding">
+        <div className="max-w-6xl mx-auto px-4 pb-12 relative">
             <div className="absolute top-1/4 -left-20 w-80 h-80 glass-prism rounded-full opacity-20 pointer-events-none blur-xl animate-pulse-glow" />
             <div className="absolute bottom-1/4 -right-20 w-96 h-96 glass-prism rounded-full opacity-20 pointer-events-none blur-2xl animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
 
@@ -475,7 +475,7 @@ export default function StartPage() {
 
                 {/* Stats row */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-[1px] bg-white/10 relative z-20">
-                    
+
                     {/* Progress */}
                     <div className="p-6 bg-surface/60 backdrop-blur-md group hover:bg-surface/80 transition-colors">
                         <div className="flex items-center justify-between mb-1">
@@ -484,8 +484,8 @@ export default function StartPage() {
                         </div>
                         <h2 className="text-2xl font-black text-white tracking-tight">SET {currentSet}/{setsPerDay}</h2>
                         <div className="mt-4 flex items-center justify-between">
-                             <span className="text-[9px] font-mono text-white/40">({tasksInCurrentSet}/{totalTasks}) {t('completed')}</span>
-                             <div className="w-1 h-1 rounded-full bg-primary-light animate-pulse" />
+                            <span className="text-[9px] font-mono text-white/40">({tasksInCurrentSet}/{totalTasks}) {t('completed')}</span>
+                            <div className="w-1 h-1 rounded-full bg-primary-light animate-pulse" />
                         </div>
                     </div>
 
