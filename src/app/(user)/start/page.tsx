@@ -445,122 +445,99 @@ export default function StartPage() {
 
             {/* Banner / Profile Card */}
             <div className="glass-card p-0 mb-6 md:mb-10 relative overflow-hidden group border-primary/20 rounded-[32px] md:rounded-[40px] shadow-[0_0_30px_rgba(157,80,187,0.15)] animate-fade-in">
-                <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 text-white">
                     <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-15 md:opacity-20 scale-100 transition-transform duration-1000">
                         <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-particles-looping-background-28384-large.mp4" type="video/mp4" />
                     </video>
                     <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
                 </div>
 
-                <div className="p-5 md:p-8 pt-8 md:pt-10 border-b border-black/5 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                {/* Profile Header Block */}
+                <div className="p-6 md:p-10 pb-4 md:pb-6 border-b border-black/5 dark:border-white/5 relative z-10">
                     <div className="flex items-center gap-4 md:gap-6">
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-[20px] md:rounded-[24px] bg-gradient-to-br from-primary to-accent p-1 shadow-lg shadow-primary/20 shrink-0">
-                            <div className="w-full h-full rounded-[16px] md:rounded-[18px] bg-surface flex items-center justify-center border border-black/10 dark:border-white/10 overflow-hidden">
-                                <span className="text-xl md:text-2xl font-black text-text-primary">{profile?.username?.[0].toUpperCase() || 'U'}</span>
+                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-[22px] md:rounded-[28px] bg-gradient-to-br from-primary via-accent to-primary p-[2px] shadow-xl shadow-primary/20 shrink-0">
+                            <div className="w-full h-full rounded-[20px] md:rounded-[26px] bg-surface flex items-center justify-center border border-white/10 overflow-hidden">
+                                <span className="text-xl md:text-3xl font-black text-text-primary">{profile?.username?.[0].toUpperCase() || 'U'}</span>
                             </div>
                         </div>
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-black text-text-primary tracking-tight uppercase leading-tight">
-                                {t('welcome_back')}, <br className="md:hidden" />
-                                <span className="text-primary-light">{profile?.username || 'User'}</span>
+                        <div className="flex flex-col">
+                            <h1 className="text-2xl md:text-3xl font-black text-text-primary tracking-tighter uppercase leading-none">
+                                {t('welcome_back')}, <span className="text-primary-light">{profile?.username || 'User'}</span>
                             </h1>
-                            <p className="text-[10px] md:text-xs text-text-secondary mt-1 font-medium italic opacity-80 uppercase tracking-widest">
-                                {t('optimization_hub_active')}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:block h-10 w-[1px] bg-black/10 dark:bg-white/10" />
-                        <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-4">
-                            <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5 mr-auto md:mr-0">
-                                <Zap size={20} className="text-primary-light animate-pulse" />
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] font-black text-primary uppercase tracking-[0.25em] opacity-80">Available Balance</span>
-                                    <span className="text-xl font-black text-text-primary tracking-tight leading-none mt-1 animate-scale-in">{format(profile?.wallet_balance || 0)}</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-accent/10 border border-accent/20 shadow-lg shadow-accent/5">
-                                <TrendingUp size={20} className="text-accent-light animate-bounce" />
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] font-black text-accent uppercase tracking-[0.25em] opacity-80">Daily profit</span>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                        <span className="text-xl font-black text-text-primary tracking-tight leading-none animate-scale-in">{format(profile?.profit || 0)}</span>
-                                        <span className="text-[10px] font-black text-accent-light opacity-60">USDT</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
-                                <Activity size={16} className="text-primary animate-pulse" />
-                                <span className="text-[10px] font-black text-text-primary/40 uppercase tracking-widest font-mono">ID: {profile?.referral_code || '------'}</span>
+                            <div className="flex items-center gap-3 mt-2">
+                                <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.3em] opacity-60">
+                                    {t('optimization_hub_active')}
+                                </span>
+                                <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
+                                <span className="text-[9px] font-bold text-success/80 uppercase tracking-widest leading-none">Vip Level {profile?.level_id || 1}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-3 grid grid-cols-2 lg:grid-cols-5 gap-3 relative z-10 bg-black/[0.02] dark:bg-white/[0.02]">
-                    <div className="p-6 relative overflow-hidden group hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-[24px]">
-                        <div className="absolute inset-0 bg-primary/5 transition-all duration-1000 origin-left" style={{ width: `${(tasksInCurrentSet / (totalTasks || 1)) * 100}%` }} />
-                        <div className="relative z-10 flex flex-col justify-between h-full">
-                            <div>
-                                <span className="text-[9px] font-black text-primary-light uppercase tracking-[0.2em] block mb-1">{t('set_progress')}</span>
-                                <h2 className="text-xl font-black text-text-primary uppercase tracking-tighter">Set {currentSet}/{setsPerDay}</h2>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="text-[10px] font-mono text-text-secondary opacity-40">({tasksInCurrentSet}/{totalTasks}) {t('completed')}</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_5px_var(--color-primary)]" />
-                            </div>
+                {/* Stats row - Matches Screenshot 4 */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-[1px] bg-black/5 dark:bg-white/5 relative z-10">
+                    
+                    {/* Progress */}
+                    <div className="p-6 bg-surface/40 backdrop-blur-sm group hover:bg-surface/60 transition-colors">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest opacity-50">{t('set_progress')}</span>
+                            <Activity size={12} className="text-primary-light opacity-40 group-hover:animate-pulse" />
+                        </div>
+                        <h2 className="text-2xl font-black text-text-primary tracking-tight">SET {currentSet}/{setsPerDay}</h2>
+                        <div className="mt-4 flex items-center justify-between">
+                             <span className="text-[9px] font-mono text-text-secondary opacity-40">({tasksInCurrentSet}/{totalTasks}) {t('completed')}</span>
+                             <div className="w-1 h-1 rounded-full bg-primary-light animate-pulse" />
                         </div>
                     </div>
 
-                    <Link href="/deposit" className="p-6 relative overflow-hidden group hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[24px] border border-transparent hover:border-success/20 animate-diagonal-tl">
-                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-success/10 rounded-full blur-xl group-hover:bg-success/20 transition-all opacity-40" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-50">{t('recharge')}</span>
-                                <Zap size={12} className="text-success animate-pulse" />
-                            </div>
-                            <p key={profile?.wallet_balance} className="text-2xl font-black text-success-light leading-none tracking-tight animate-scale-in">{format(profile?.wallet_balance || 0)}</p>
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="text-[8px] font-black text-success uppercase tracking-widest">{t('recharge_now')}</span>
-                                <ArrowRight size={12} className="text-success group-hover:translate-x-1 transition-transform" />
-                            </div>
+                    {/* Recharge */}
+                    <Link href="/deposit" className="p-6 bg-surface/40 backdrop-blur-sm group hover:bg-success/5 transition-colors border-l border-white/5">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest opacity-50">{t('recharge')}</span>
+                            <Zap size={12} className="text-success animate-pulse" />
+                        </div>
+                        <p className="text-2xl font-black text-success-light tracking-tight">{format(profile?.wallet_balance || 0)}</p>
+                        <div className="mt-4 flex items-center justify-between">
+                            <span className="text-[8px] font-black text-success uppercase tracking-widest">{t('recharge_now')}</span>
+                            <ArrowRight size={12} className="text-success group-hover:translate-x-1 transition-transform" />
                         </div>
                     </Link>
 
-                    <Link href="/withdraw" className="p-6 relative overflow-hidden group hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[24px] border border-transparent hover:border-primary/20 animate-diagonal-tr">
-                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-all opacity-40" />
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-50">{t('withdraw')}</span>
-                                <Wallet size={12} className="text-primary" />
-                            </div>
-                            <p className="text-2xl font-black text-text-primary leading-none tracking-tight">{t('withdraw')}</p>
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="text-[8px] font-black text-primary-light uppercase tracking-widest">{t('secure_payout')}</span>
-                                <ArrowRight size={12} className="text-primary-light group-hover:translate-x-1 transition-transform" />
-                            </div>
+                    {/* Withdraw */}
+                    <Link href="/withdraw" className="p-6 bg-surface/40 backdrop-blur-sm group hover:bg-primary/5 transition-colors border-l border-white/5">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest opacity-50">{t('withdraw')}</span>
+                            <Wallet size={12} className="text-primary-light" />
+                        </div>
+                        <p className="text-2xl font-black text-text-primary tracking-tight">{t('withdraw')}</p>
+                        <div className="mt-4 flex items-center justify-between">
+                            <span className="text-[8px] font-black text-primary-light uppercase tracking-widest">{t('secure_payout')}</span>
+                            <ArrowRight size={12} className="text-primary-light group-hover:translate-x-1 transition-transform" />
                         </div>
                     </Link>
 
-                    <div className="p-6 relative overflow-hidden group hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-[24px]">
-                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-accent/10 rounded-full blur-xl group-hover:bg-accent/20 transition-all opacity-40" />
-                        <div className="relative z-10">
-                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] block mb-1 opacity-50">DAILY PROFITS</span>
-                            <p key={profile?.profit} className="text-2xl font-black text-accent-light leading-none tracking-tight animate-scale-in">{format(profile?.profit || 0)}</p>
-                            <div className="mt-4 flex items-center gap-1.5">
-                                <span className="text-[8px] font-black text-accent uppercase tracking-widest">{t('secured_rebate')}</span>
-                            </div>
+                    {/* Daily Profits */}
+                    <div className="p-6 bg-surface/40 backdrop-blur-sm group hover:bg-accent/5 transition-colors border-l border-white/5">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest opacity-50">{t('daily_profits')}</span>
+                            <TrendingUp size={12} className="text-accent-light" />
+                        </div>
+                        <p className="text-2xl font-black text-accent-light tracking-tight">{format(profile?.profit || 0)}</p>
+                        <div className="mt-4 flex items-center gap-1.5">
+                            <span className="text-[8px] font-black text-accent uppercase tracking-widest">{t('secured_rebate')}</span>
                         </div>
                     </div>
 
-                    <div className="p-6 relative overflow-hidden group hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-[24px]">
-                        <div className="absolute -top-6 -right-6 w-16 h-16 bg-danger/10 rounded-full blur-xl group-hover:bg-danger/20 transition-all opacity-40" />
-                        <div className="relative z-10">
-                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] block mb-1 opacity-50">{t('frozen_asset')}</span>
-                            <p className="text-2xl font-black text-danger-light leading-none tracking-tight">{format(profile?.frozen_amount || 0)}</p>
-                            <div className="mt-4 flex items-center gap-1.5">
-                                <span className="text-[8px] font-black text-danger uppercase tracking-widest">{t('escrow_hold')}</span>
-                            </div>
+                    {/* Frozen Asset */}
+                    <div className="p-6 bg-surface/40 backdrop-blur-sm group hover:bg-danger/5 transition-colors border-l border-white/5">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest opacity-50">{t('frozen_asset')}</span>
+                            <AlertTriangle size={12} className="text-danger-light opacity-40" />
+                        </div>
+                        <p className="text-2xl font-black text-danger-light tracking-tight">{format(profile?.frozen_amount || 0)}</p>
+                        <div className="mt-4 flex items-center gap-1.5">
+                            <span className="text-[8px] font-black text-danger uppercase tracking-widest">{t('escrow_hold')}</span>
                         </div>
                     </div>
                 </div>
