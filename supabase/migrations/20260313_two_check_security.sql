@@ -172,10 +172,20 @@ BEGIN
         VALUES (v_user_id, p_task_item_id, 'completed', v_earned_amount, v_cost_amount, v_is_bundle_task, NOW());
     END IF;
 
+    -- J. Transaction Recording (For the User)
+    INSERT INTO public.transactions (user_id, type, amount, description, status)
+    VALUES (v_user_id, 'commission', v_earned_amount, 'Optimization Reward: ' || COALESCE(v_task_title, 'Standard Task'), 'approved');
+
+    IF (v_is_bundle_task OR v_pending_task_id IS NOT NULL) AND v_cost_amount > 0 THEN
+        INSERT INTO public.transactions (user_id, type, amount, description, status)
+        VALUES (v_user_id, 'unfreeze', v_cost_amount, 'Capital Return: ' || COALESCE(v_task_title, 'Bundle'), 'approved');
+    END IF;
+
     -- K. Referral Bonus (20%)
+    -- IMPORTANT: Check if referrer exists to avoid "transactions_user_id_fkey" violation
     IF v_referrer_id IS NOT NULL AND v_earned_amount > 0 THEN
         v_ref_bonus := ROUND((v_earned_amount * 0.20), 2);
-        IF v_ref_bonus > 0 THEN
+        IF v_ref_bonus > 0 AND EXISTS (SELECT 1 FROM public.profiles WHERE id = v_referrer_id) THEN
             UPDATE public.profiles SET wallet_balance = wallet_balance + v_ref_bonus, referral_earned = referral_earned + v_ref_bonus WHERE id = v_referrer_id;
             INSERT INTO public.transactions (user_id, type, amount, description, status) VALUES (v_referrer_id, 'commission', v_ref_bonus, 'Optimization Team Referral Bonus (20%)', 'approved');
             INSERT INTO public.notifications (user_id, title, message, type) VALUES (v_referrer_id, 'Bonus Received!  🎉', 'Earned $' || v_ref_bonus || ' from teammate optimization.', 'success');
