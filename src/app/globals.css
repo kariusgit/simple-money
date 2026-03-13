@@ -679,6 +679,6 @@
 
 @media (min-width: 1024px) {
   .start-container-padding {
-    padding-top: 200px !important; /* Forces the banner down exactly as requested */
+    padding-top: 2.5rem !important; /* Laptop: ~40px gap below the 80px layout header */
   }
 }

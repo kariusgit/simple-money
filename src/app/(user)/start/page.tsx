@@ -564,7 +564,7 @@ export default function StartPage() {
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full md:w-[800px] h-[500px] md:h-[600px] bg-primary/10 rounded-full blur-[100px] md:blur-[160px] transition-opacity duration-1000 ${isSpinning ? 'opacity-100' : 'opacity-40'}`} />
 
                 <div className="w-full max-w-2xl mx-auto space-y-12 z-10 px-4 relative">
-                    <div className="grid grid-cols-5 gap-1.5 md:gap-2 relative">
+                    <div className="grid grid-cols-5 gap-2 md:gap-4 relative">
                         {Array.from({ length: 25 }).map((_, idx) => {
                             if (idx === 12) {
                                 return (
@@ -573,24 +573,17 @@ export default function StartPage() {
                                         <button
                                             onClick={handleStart}
                                             disabled={isSpinning}
-                                            className={`relative w-full h-full rounded-full flex flex-col items-center justify-center p-1.5 transition-all duration-700 overflow-hidden !cursor-pointer
-                                                ${isSpinning ? 'scale-95 shadow-none ring-4 ring-primary/20' : 'hover:scale-105 shadow-[0_0_30_rgba(157,80,187,0.4)]'}
-                                                ${(isLocked || (profile?.wallet_balance || 0) < 65 || profile?.pending_bundle) ? 'grayscale opacity-40 !cursor-not-allowed' : ''}
+                                            className={`relative w-full h-full rounded-full flex flex-col items-center justify-center p-2 transition-all duration-300 overflow-hidden !cursor-pointer
+                                                ${isSpinning ? 'scale-95 shadow-none ring-4 ring-primary/20' : 'hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(157,80,187,0.3)]'}
+                                                ${(isLocked || (profile?.wallet_balance || 0) < 65 || profile?.pending_bundle) ? 'grayscale opacity-40 !cursor-not-allowed' : 'bg-slate-900 border-2 border-primary/30'}
                                             `}
-
                                         >
-                                            <div className="absolute inset-0 glass-water opacity-90" />
-                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(255,255,255,0.4)_0%,transparent_60%)] z-10" />
-                                            <div className="absolute top-1 left-4 right-4 h-1/4 bg-white/20 blur-md rounded-full z-10" />
-                                            <div className={`absolute inset-0 transition-transform duration-1000 ${isSpinning ? 'translate-y-[-20%] rotate-12' : 'translate-y-[60%]'}`}>
-                                                <div className="absolute top-0 left-[-100%] w-[300%] h-[300%] bg-white/10 rounded-[45%] animate-spin-slow" />
-                                                <div className="absolute top-2 left-[-100%] w-[300%] h-[300%] bg-white/5 rounded-[40%] animate-spin-slow opacity-50" style={{ animationDirection: 'reverse' }} />
-                                            </div>
                                             <div className="relative z-20 flex flex-col items-center text-center">
-                                                <h3 className="text-[11px] md:text-lg font-black text-white uppercase tracking-wider leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
-                                                    {hasPendingTask ? "Submit Order" : (isLocked ? t('status') : t('start'))}
+                                                <h3 className="text-[10px] md:text-sm font-black text-white uppercase tracking-wider leading-tight">
+                                                    {hasPendingTask ? "SUBMIT" : (isLocked ? t('status') : t('start'))}
                                                 </h3>
-                                                {!isSpinning && !isLocked && !hasPendingTask && <Pointer size={14} className="text-white animate-bounce mt-1 drop-shadow-md" />}
+                                                {!isSpinning && !isLocked && !hasPendingTask && <Pointer size={14} className="text-primary-light animate-bounce mt-1" />}
+                                                {isSpinning && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mt-1" />}
                                             </div>
                                         </button>
                                     </div>
@@ -599,11 +592,11 @@ export default function StartPage() {
 
                             const itemIdx = idx > 12 ? idx - 1 : idx;
                             return (
-                                <div key={idx} className={`aspect-square glass-card p-0.5 border-black/5 dark:border-white/5 overflow-hidden transition-all duration-500 rounded-[8px] md:rounded-[12px] ${isSpinning && highlightedIndex === itemIdx ? 'ring-2 ring-primary scale-110 shadow-[0_0_12px_var(--color-primary)] opacity-100 z-10' : 'opacity-80 scale-100'}`}>
+                                <div key={idx} className={`aspect-square bg-slate-900/40 p-1 border border-white/5 overflow-hidden transition-all duration-500 rounded-[12px] md:rounded-[20px] ${isSpinning && highlightedIndex === itemIdx ? 'ring-2 ring-primary scale-110 shadow-[0_0_20px_var(--color-primary)] opacity-100 z-10' : 'opacity-80'}`}>
                                     {items[itemIdx] ? (
-                                        <img src={items[itemIdx].image_url} className="w-full h-full object-cover rounded-[6px] md:rounded-[10px]" alt="" />
+                                        <img src={items[itemIdx].image_url} className="w-full h-full object-cover rounded-[8px] md:rounded-[16px]" alt="" />
                                     ) : (
-                                        <div className="w-full h-full bg-black/5 dark:bg-white/5 animate-pulse rounded-[6px] md:rounded-[10px]" />
+                                        <div className="w-full h-full bg-white/5 animate-pulse rounded-[8px] md:rounded-[16px]" />
                                     )}
                                 </div>
                             );
