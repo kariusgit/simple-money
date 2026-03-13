@@ -116,15 +116,7 @@ export default function StartPage() {
                 }
 
                 // 2. Items logic + Preloading
-                // Only filter items completed today (since last reset) for current pool
-                const lastResetDate = profile.last_reset_at ? new Date(profile.last_reset_at) : new Date(Date.now() - 24 * 60 * 60 * 1000);
-                const recentUsedIds = new Set(
-                    ((pastTasksRes.data || []) as any[])
-                        .filter(t => t.completed_at && new Date(t.completed_at) > lastResetDate)
-                        .map(t => t.task_item_id)
-                );
-                
-                let availableItems = (itemsRes.data || []).filter(item => !recentUsedIds.has(item.id));
+                let availableItems = itemsRes.data || [];
 
                 if (availableItems.length === 0 && itemsRes.data && itemsRes.data.length > 0) {
                     availableItems = itemsRes.data;
@@ -319,24 +311,10 @@ export default function StartPage() {
 
         setIsSubmitting(true);
         try {
-            const { data, error } = await supabase.rpc('complete_user_task', { 
+            const { data, error } = await supabase.rpc('complete_user_task', {
                 p_task_item_id: item.id,
-                p_cost_amount: costAmount 
+                p_cost_amount: costAmount
             });
-
-            // HANDLE DUPLICATE ITEM SILENTLY (No refresh needed)
-            if (data && data.success === false && data.error_type === 'duplicate_item') {
-                console.warn("Duplicate detected in batch, auto-correcting pool...");
-                // Remove the duplicate item from current items list so it isn't picked again
-                const updatedItems = items.filter(i => i.id !== item.id);
-                setItems(updatedItems);
-                setModalOpen(false);
-                setIsSubmitting(false);
-                
-                // Immediately trigger a new start/match after a tiny delay
-                setTimeout(() => handleStart(), 300);
-                return;
-            }
 
             if (error) throw error;
 
@@ -350,7 +328,7 @@ export default function StartPage() {
                 setModalOpen(false);
                 setProfitAdded(earnedAmount > 0 ? earnedAmount : 0);
                 setTimeout(() => setProfitAdded(null), 4000);
-                
+
                 // REPLACE COMPLETED ITEM IN POOL
                 const pool = (window as any)._allPoolItems || [];
                 if (pool.length > 0) {
@@ -374,16 +352,7 @@ export default function StartPage() {
             }
             await refreshProfile();
         } catch (err: any) {
-            const errMsg = err?.message || '';
-            if (errMsg.toLowerCase().includes('duplicate item')) {
-                console.warn("Duplicate exception caught, auto-correcting...");
-                const updatedItems = items.filter(i => i.id !== item.id);
-                setItems(updatedItems);
-                setModalOpen(false);
-                setTimeout(() => handleStart(), 300);
-            } else {
-                alert(`Optimization Failure: ${errMsg || 'Error'}`);
-            }
+            alert(`Optimization Failure: ${err?.message || 'Error'}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -618,11 +587,11 @@ export default function StartPage() {
 
                         {showMinBalanceModal && (
                             <Portal>
-                                <div 
+                                <div
                                     className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in text-center cursor-pointer"
                                     onClick={() => setShowMinBalanceModal(false)}
                                 >
-                                    <div 
+                                    <div
                                         className="glass-card-strong max-w-sm w-full p-10 animate-scale-in border-danger/30 rounded-[32px] relative shadow-[0_50px_140px_rgba(0,0,0,0.95)] cursor-default md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
                                         onClick={e => e.stopPropagation()}
                                     >
@@ -640,11 +609,11 @@ export default function StartPage() {
 
                         {showCompletionModal && (
                             <Portal>
-                                <div 
+                                <div
                                     className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in text-center cursor-pointer"
                                     onClick={handleConfirmSettlement}
                                 >
-                                    <div 
+                                    <div
                                         className="glass-card-strong max-w-sm w-full p-10 animate-scale-in border-success/30 rounded-[32px] relative shadow-[0_50px_140px_rgba(0,0,0,0.95)] cursor-default md:fixed md:left-[59%] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
                                         onClick={e => e.stopPropagation()}
                                     >
@@ -659,7 +628,7 @@ export default function StartPage() {
                                                 <span className="text-lg font-black text-success tracking-tight">{format(profile?.wallet_balance || 0)}</span>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={handleConfirmSettlement}
                                             className="w-full py-4 rounded-2xl bg-success/20 text-success border border-success/30 font-black uppercase tracking-widest text-[11px] hover:bg-success/30 transition-all active:scale-95"
                                         >

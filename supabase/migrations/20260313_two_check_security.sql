@@ -115,16 +115,6 @@ BEGIN
             RAISE EXCEPTION 'Maximum daily sets ( % / % ) reached. Come back tomorrow!', v_sets_per_day, v_sets_per_day;
         END IF;
         
-        -- Duplicate Protection (Item Specific)
-        IF EXISTS (
-            SELECT 1 FROM public.user_tasks 
-            WHERE user_id = v_user_id 
-            AND task_item_id = p_task_item_id 
-            AND status = 'completed'
-            AND completed_at > v_last_reset_at
-        ) THEN
-            RETURN json_build_object('success', false, 'error_type', 'duplicate_item', 'message', 'Optimization detected duplicate item. Auto-correcting...');
-        END IF;
     END IF;
 
     -- G. Calculate current set progress
