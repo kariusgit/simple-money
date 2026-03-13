@@ -91,12 +91,23 @@ export default function StartPage() {
             if (!profile?.level_id || !profile?.id) return;
             setIsLoadingData(true);
 
-            try {
                 // Parallelize all initial global data fetches
+                // PERFORMANCE FIX: Only fetch tasks from the last 24 hours for pool filtering
+                const filterDate = profile.last_reset_at ? new Date(profile.last_reset_at).toISOString() : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                
                 const [levelsRes, pastTasksRes, itemsRes] = await Promise.all([
                     supabase.from('levels').select('id, tasks_per_set, sets_per_day, commission_rate').order('price', { ascending: true }),
-                    supabase.from('user_tasks').select('task_item_id, status, completed_at').eq('user_id', profile.id).neq('status', 'cancelled'),
-                    supabase.from('task_items').select('*').eq('is_active', true).eq('level_id', profile.level_id).order('created_at', { ascending: false }).limit(300)
+                    supabase.from('user_tasks')
+                        .select('task_item_id, status, completed_at')
+                        .eq('user_id', profile.id)
+                        .neq('status', 'cancelled')
+                        .gt('completed_at', filterDate),
+                    supabase.from('task_items')
+                        .select('*')
+                        .eq('is_active', true)
+                        .eq('level_id', profile.level_id)
+                        .order('created_at', { ascending: false })
+                        .limit(300)
                 ]);
 
                 // 1. Level Logic

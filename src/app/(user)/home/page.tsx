@@ -50,27 +50,19 @@ export default function HomePage() {
             if (!profile) return;
             setLoading(true);
             
-            try {
                 // Fetch stats and levels concurrently
-                const [statsResult, levelsResult] = await Promise.all([
-                    supabase
-                        .from('user_tasks')
-                        .select('status')
-                        .eq('user_id', profile.id),
-                    supabase
-                        .from('levels')
-                        .select('*')
-                        .order('price', { ascending: true })
-                        .limit(2)
+                const [allRes, completedRes, pendingRes, levelsResult] = await Promise.all([
+                    supabase.from('user_tasks').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+                    supabase.from('user_tasks').select('*', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'completed'),
+                    supabase.from('user_tasks').select('*', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'pending'),
+                    supabase.from('levels').select('*').order('price', { ascending: true }).limit(2)
                 ]);
-
-                if (statsResult.data) {
-                    setStats({
-                        totalTasks: statsResult.data.length,
-                        completedTasks: statsResult.data.filter(t => t.status === 'completed').length,
-                        pendingTasks: statsResult.data.filter(t => t.status === 'pending').length
-                    });
-                }
+                
+                setStats({
+                    totalTasks: allRes.count || 0,
+                    completedTasks: completedRes.count || 0,
+                    pendingTasks: pendingRes.count || 0
+                });
 
                 if (levelsResult.data) {
                     setLevels(levelsResult.data);
