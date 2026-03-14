@@ -15,20 +15,20 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Simple Money - Smart Money Management Made Simple",
+  title: "Simple Money - Earn Daily Commissions with Simple Tasks",
   description:
-    "Take control of your finances with Simple Money. Track spending, set budgets, and achieve your financial goals with our intuitive money management platform.",
+    "Join 10,000+ members earning daily commissions on Simple Money. Complete tasks, unlock VIP levels, and grow your income with our transparent rewards platform.",
   keywords: [
-    "money management",
-    "budgeting",
-    "finance",
-    "spending tracker",
-    "financial planning",
+    "earn money online",
+    "daily commissions",
+    "task platform",
+    "passive income",
+    "crypto earnings",
   ],
   openGraph: {
-    title: "Simple Money - Smart Money Management Made Simple",
+    title: "Simple Money - Earn Daily Commissions with Simple Tasks",
     description:
-      "Take control of your finances with Simple Money. Track spending, set budgets, and achieve your financial goals.",
+      "Join 10,000+ members earning daily commissions. Complete tasks, unlock VIP levels, and grow your income.",
     type: "website",
   },
 };
