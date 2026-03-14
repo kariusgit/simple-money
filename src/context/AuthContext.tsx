@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         let mounted = true;
+        let initialized = false;
 
         const initialize = async () => {
             try {
@@ -73,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setUser(null);
                     setProfile(null);
                 }
+                initialized = true;
             } catch (err: any) {
                 console.error('Auth initialization error:', err);
                 
@@ -86,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         setUser(null);
                         setProfile(null);
                     }
+                    initialized = true;
                 }
             } finally {
                 if (mounted) setLoading(false);
@@ -97,12 +100,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (!mounted) return;
+                
+                // Skip INITIAL_SESSION event since we handle it in initialize()
+                // This prevents double-processing that can cause flickering
+                if (event === 'INITIAL_SESSION' && !initialized) return;
 
                 if (session?.user) {
                     setUser(session.user);
-                    // Don't setLoading(false) here — only after profile is fetched
                     await fetchProfile(session.user.id);
-                } else {
+                } else if (event === 'SIGNED_OUT') {
+                    // Only clear state on explicit sign out
                     setUser(null);
                     setProfile(null);
                 }

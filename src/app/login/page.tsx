@@ -47,27 +47,21 @@ export default function LoginPage() {
     const [acceptTerms, setAcceptTerms] = useState(true);
     const router = useRouter();
 
-    // Auto-logout when accessing the login page
+    // Check if user is already logged in and redirect to home
+    // Do NOT auto-logout - this was causing the double login issue
     useEffect(() => {
-        const cleanupSession = async () => {
+        const checkSession = async () => {
             try {
-                // Use a short timeout for cleanup to prevent hanging the login page
-                const sessionPromise = supabase.auth.getSession();
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('TIMEOUT')), 3000)
-                );
-
-                const res = await Promise.race([sessionPromise, timeoutPromise]) as any;
-                if (res?.data?.session) {
-                    await supabase.auth.signOut();
-                    router.refresh();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    // User is already logged in, redirect to home
+                    router.replace('/home');
                 }
             } catch (err) {
-                // Ignore timeout or other errors during auto-cleanup
-                console.warn('Login session cleanup bypassed/timed out');
+                // Ignore errors - user can proceed to login
             }
         };
-        cleanupSession();
+        checkSession();
     }, [router]);
 
 
