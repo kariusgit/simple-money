@@ -94,9 +94,19 @@ export default function LandingPage() {
             <div ref={containerRef} className="min-h-screen bg-[#050510] text-white selection:bg-primary/30 selection:text-primary-light overflow-x-hidden">
                 {/* Background Atmosphere */}
                 <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-screen"
+                    >
+                        <source src="/banner-video.mp4" type="video/mp4" />
+                    </video>
                     <div className="blob-1 absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]" />
                     <div className="blob-2 absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[140px]" />
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050510]/50 to-[#050510]" />
                 </div>
 
                 {/* Navigation */}
@@ -150,7 +160,7 @@ export default function LandingPage() {
                         </p>
 
                         <div className="reveal-up flex flex-col md:flex-row items-center justify-center gap-6">
-                            <Link href="/signup" className="btn-primary px-12 py-5 rounded-2xl flex items-center gap-3 text-sm tracking-widest group">
+                            <Link href="/signup" className="btn-primary px-12 py-5 rounded-2xl flex items-center gap-3 text-sm tracking-widest group shadow-[0_0_30px_rgba(157,80,187,0.3)] hover:shadow-[0_0_50px_rgba(157,80,187,0.5)] transition-all">
                                 START EARNING <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                             </Link>
                             <div className="flex items-center gap-4 text-white/40">
@@ -226,6 +236,54 @@ export default function LandingPage() {
                                     <p className="text-text-secondary leading-relaxed font-medium opacity-60">
                                         {feat.desc}
                                     </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Levels Section */}
+                <section id="vip" className="px-6 py-32 relative bg-white/[0.02]">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-20 space-y-4">
+                            <h2 className="reveal-up text-xs font-black uppercase tracking-[0.4em] text-accent">VIP Tier Ecosystem</h2>
+                            <h3 className="reveal-up text-4xl md:text-5xl font-black tracking-tighter uppercase italic">Institutional Grade Access</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[
+                                { id: 1, name: 'LV1', price: 100, rate: '0.45%', tasks: 40, color: 'from-cyan-500 to-blue-600' },
+                                { id: 2, name: 'LV2', price: 500, rate: '0.50%', tasks: 50, color: 'from-violet-500 to-purple-600' },
+                                { id: 3, name: 'LV3', price: 2000, rate: '0.80%', tasks: 60, color: 'from-amber-400 to-orange-500' },
+                                { id: 4, name: 'LV4', price: 5000, rate: '1.00%', tasks: 70, color: 'from-rose-500 to-red-600' },
+                                { id: 5, name: 'LV5', price: 10000, rate: '1.20%', tasks: 80, color: 'from-emerald-500 to-teal-600' },
+                                { id: 6, name: 'LV6', price: 30000, rate: '1.50%', tasks: 100, color: 'from-blue-600 to-indigo-700' },
+                            ].map((level, i) => (
+                                <div key={i} className="reveal-up glass-card-strong p-8 flex flex-col border border-white/5 hover:border-white/20 transition-all duration-500 group">
+                                    <div className="flex justify-between items-start mb-8">
+                                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${level.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                                            <BadgeCheck size={24} className="text-white" />
+                                        </div>
+                                        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest text-white/40">Verified Tier</div>
+                                    </div>
+                                    <h4 className="text-3xl font-black uppercase tracking-tighter mb-1">{level.name}</h4>
+                                    <div className="flex items-baseline gap-2 mb-8">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Cost</span>
+                                        <span className="text-2xl font-black">${level.price.toLocaleString()}</span>
+                                    </div>
+                                    <div className="space-y-4 pt-6 border-t border-white/5">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Comm. Rate</span>
+                                            <span className="text-xs font-black text-success">{level.rate}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Task Limit</span>
+                                            <span className="text-xs font-black">{level.tasks} Tasks</span>
+                                        </div>
+                                    </div>
+                                    <Link href="/signup" className="mt-8 w-full py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-center transition-all group-hover:border-primary/50">
+                                        Activate Tier
+                                    </Link>
                                 </div>
                             ))}
                         </div>
