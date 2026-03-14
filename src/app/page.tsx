@@ -35,51 +35,49 @@ export default function LandingPage() {
     }, [user, loading, router]);
 
     useEffect(() => {
-        if (!containerRef.current) return;
+        if (loading || !containerRef.current) return;
 
-        const timer = setTimeout(() => {
-            const ctx = gsap.context(() => {
-                gsap.set(['.reveal-up', '.reveal-scale'], { opacity: 0 });
-                gsap.set('.reveal-up', { y: 60 });
-                gsap.set('.reveal-scale', { scale: 0.8 });
+        const ctx = gsap.context(() => {
+            gsap.set(['.reveal-up', '.reveal-scale'], { opacity: 0 });
+            gsap.set('.reveal-up', { y: 60 });
+            gsap.set('.reveal-scale', { scale: 0.8 });
 
-                const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+            const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
 
-                tl.to('.reveal-up', {
-                    y: 0,
-                    opacity: 1,
-                    duration: 1.2,
-                    stagger: 0.1
-                })
-                .to('.reveal-scale', {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 1,
-                    stagger: 0.1
-                }, "-=0.8");
+            tl.to('.reveal-up', {
+                y: 0,
+                opacity: 1,
+                duration: 1.2,
+                stagger: 0.1
+            })
+            .to('.reveal-scale', {
+                scale: 1,
+                opacity: 1,
+                duration: 1,
+                stagger: 0.1
+            }, "-=0.8");
 
-                // Floating animations for background blobs
-                gsap.to('.blob-1', {
-                    x: 100,
-                    y: 50,
-                    duration: 8,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
-                });
-                gsap.to('.blob-2', {
-                    x: -80,
-                    y: -40,
-                    duration: 10,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
-                });
-            }, containerRef);
-        }, 500);
+            // Floating animations for background blobs
+            gsap.to('.blob-1', {
+                x: 100,
+                y: 50,
+                duration: 8,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+            gsap.to('.blob-2', {
+                x: -80,
+                y: -40,
+                duration: 10,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        }, containerRef);
 
-        return () => clearTimeout(timer);
-    }, []);
+        return () => ctx.revert();
+    }, [loading]);
 
     if (loading) {
         return (
@@ -92,213 +90,215 @@ export default function LandingPage() {
     if (user) return null; // Avoid flicker while redirecting
 
     return (
-        <div ref={containerRef} className="min-h-screen bg-[#050510] text-white selection:bg-primary/30 selection:text-primary-light overflow-x-hidden">
-            {/* Background Atmosphere */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="blob-1 absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]" />
-                <div className="blob-2 absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[140px]" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
-            </div>
-
-            {/* Navigation */}
-            <nav className="fixed top-0 w-full z-[100] px-6 py-5">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
-                            <DollarSign className="text-white" size={20} />
-                        </div>
-                        <span className="text-xl font-black uppercase tracking-tighter">Simple Money</span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
-                        <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
-                        <Link href="#how-it-works" className="hover:text-primary transition-colors">Workflow</Link>
-                        <Link href="#vip" className="hover:text-primary transition-colors">VIP map</Link>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <Link href="/login" className="text-[10px] font-black uppercase tracking-widest px-6 py-3 hover:text-white transition-colors">Login</Link>
-                        <Link href="/signup" className="bg-white text-black text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.2)]">
-                            Sign Up
-                        </Link>
-                    </div>
+        <AnimatePage>
+            <div ref={containerRef} className="min-h-screen bg-[#050510] text-white selection:bg-primary/30 selection:text-primary-light overflow-x-hidden">
+                {/* Background Atmosphere */}
+                <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <div className="blob-1 absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]" />
+                    <div className="blob-2 absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[140px]" />
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
                 </div>
-            </nav>
 
-            {/* Hero Section */}
-            <section className="relative pt-44 pb-32 px-6">
-                <div className="max-w-5xl mx-auto text-center relative">
-                    <div className="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8">
-                        <Sparkles size={14} className="text-warning animate-pulse" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">Next-Gen Fintech Platform</span>
-                    </div>
-
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[600px] pointer-events-none opacity-40 reveal-scale -z-10">
-                        <img
-                            src="/hero_image.png"
-                            alt="Background"
-                            className="w-full h-full object-contain animate-float"
-                        />
-                    </div>
-
-                    <h1 className="reveal-up text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 relative z-10">
-                        The world's most <br />
-                        <span className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer italic">Refined</span> platform.
-                    </h1>
-
-                    <p className="reveal-up text-text-secondary text-lg md:text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed opacity-70">
-                        Maximize your commission potential with our industry-leading optimization engine. Secure, audited, and built for speed.
-                    </p>
-
-                    <div className="reveal-up flex flex-col md:flex-row items-center justify-center gap-6">
-                        <Link href="/signup" className="btn-primary px-12 py-5 rounded-2xl flex items-center gap-3 text-sm tracking-widest group">
-                            START EARNING <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
-                        </Link>
-                        <div className="flex items-center gap-4 text-white/40">
-                            <div className="flex -space-x-3">
-                                {[1, 2, 3, 4].map(i => (
-                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#050510] bg-surface-light" />
-                                ))}
+                {/* Navigation */}
+                <nav className="fixed top-0 w-full z-[100] px-6 py-5">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                                <DollarSign className="text-white" size={20} />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest">124K+ Active Earners</span>
+                            <span className="text-xl font-black uppercase tracking-tighter">Simple Money</span>
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+                            <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
+                            <Link href="#how-it-works" className="hover:text-primary transition-colors">Workflow</Link>
+                            <Link href="#vip" className="hover:text-primary transition-colors">VIP map</Link>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <Link href="/login" className="text-[10px] font-black uppercase tracking-widest px-6 py-3 hover:text-white transition-colors">Login</Link>
+                            <Link href="/signup" className="bg-white text-black text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.2)]">
+                                Sign Up
+                            </Link>
                         </div>
                     </div>
-                </div>
-            </section>
+                </nav>
 
-            {/* Stats Section */}
-            <section className="px-6 py-20 relative">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                            { label: 'Active Users', value: '124K+', icon: Users, color: 'text-primary' },
-                            { label: 'Total Payouts', value: '$840M+', icon: DollarSign, color: 'text-success' },
-                            { label: 'Global Rank', value: '#1', icon: Globe, color: 'text-accent' },
-                            { label: 'Uptime', value: '99.9%', icon: BadgeCheck, color: 'text-warning' },
-                        ].map((stat, i) => (
-                            <div key={i} className="reveal-scale glass-card-strong p-8 flex flex-col items-center text-center gap-4 border border-white/5 group hover:border-white/20 transition-all duration-500">
-                                <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
-                                    <stat.icon size={24} />
+                {/* Hero Section */}
+                <section className="relative pt-44 pb-32 px-6">
+                    <div className="max-w-5xl mx-auto text-center relative">
+                        <div className="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8">
+                            <Sparkles size={14} className="text-warning animate-pulse" />
+                            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">Next-Gen Fintech Platform</span>
+                        </div>
+
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[600px] pointer-events-none opacity-40 reveal-scale -z-10">
+                            <img
+                                src="/hero_image.png"
+                                alt="Background"
+                                className="w-full h-full object-contain animate-float"
+                            />
+                        </div>
+
+                        <h1 className="reveal-up text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 relative z-10">
+                            The world's most <br />
+                            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer italic">Refined</span> platform.
+                        </h1>
+
+                        <p className="reveal-up text-text-secondary text-lg md:text-xl font-medium max-w-2xl mx-auto mb-12 leading-relaxed opacity-70">
+                            Maximize your commission potential with our industry-leading optimization engine. Secure, audited, and built for speed.
+                        </p>
+
+                        <div className="reveal-up flex flex-col md:flex-row items-center justify-center gap-6">
+                            <Link href="/signup" className="btn-primary px-12 py-5 rounded-2xl flex items-center gap-3 text-sm tracking-widest group">
+                                START EARNING <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                            </Link>
+                            <div className="flex items-center gap-4 text-white/40">
+                                <div className="flex -space-x-3">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-[#050510] bg-surface-light" />
+                                    ))}
                                 </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-3xl font-black tracking-tighter">{stat.value}</h3>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-40">{stat.label}</p>
-                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">124K+ Active Earners</span>
                             </div>
-                        ))}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Features Section */}
-            <section id="features" className="px-6 py-32 relative">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-20 space-y-4">
-                        <h2 className="reveal-up text-xs font-black uppercase tracking-[0.4em] text-primary">Core Infrastructure</h2>
-                        <h3 className="reveal-up text-4xl md:text-5xl font-black tracking-tighter uppercase italic">Engineered for Results</h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                        {[
-                            {
-                                title: 'AI Optimization',
-                                desc: 'Proprietary algorithms match you with the highest yielding tasks in real-time.',
-                                icon: Cpu,
-                                color: 'bg-primary/20 text-primary-light'
-                            },
-                            {
-                                title: 'Secure Escrow',
-                                desc: 'Every transaction is locked in a secure TLS 1.3 container until audit clearance.',
-                                icon: Lock,
-                                color: 'bg-accent/20 text-accent'
-                            },
-                            {
-                                title: 'Tiered Payouts',
-                                desc: 'Access up to 30 sets of optimized tasks per day with instant settlement.',
-                                icon: Zap,
-                                color: 'bg-success/20 text-success'
-                            }
-                        ].map((feat, i) => (
-                            <div key={i} className="reveal-up glass-card-strong p-10 hover:bg-white/5 transition-all duration-700 rounded-[40px] border border-white/5 group hover:border-primary/20 shadow-2xl">
-                                <div className={`w-16 h-16 rounded-[24px] ${feat.color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-2xl`}>
-                                    <feat.icon size={32} />
+                {/* Stats Section */}
+                <section className="px-6 py-20 relative">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            {[
+                                { label: 'Active Users', value: '124K+', icon: Users, color: 'text-primary' },
+                                { label: 'Total Payouts', value: '$840M+', icon: DollarSign, color: 'text-success' },
+                                { label: 'Global Rank', value: '#1', icon: Globe, color: 'text-accent' },
+                                { label: 'Uptime', value: '99.9%', icon: BadgeCheck, color: 'text-warning' },
+                            ].map((stat, i) => (
+                                <div key={i} className="reveal-scale glass-card-strong p-8 flex flex-col items-center text-center gap-4 border border-white/5 group hover:border-white/20 transition-all duration-500">
+                                    <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+                                        <stat.icon size={24} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-3xl font-black tracking-tighter">{stat.value}</h3>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-40">{stat.label}</p>
+                                    </div>
                                 </div>
-                                <h4 className="text-2xl font-black uppercase tracking-tighter mb-4">{feat.title}</h4>
-                                <p className="text-text-secondary leading-relaxed font-medium opacity-60">
-                                    {feat.desc}
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Features Section */}
+                <section id="features" className="px-6 py-32 relative">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-20 space-y-4">
+                            <h2 className="reveal-up text-xs font-black uppercase tracking-[0.4em] text-primary">Core Infrastructure</h2>
+                            <h3 className="reveal-up text-4xl md:text-5xl font-black tracking-tighter uppercase italic">Engineered for Results</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                            {[
+                                {
+                                    title: 'AI Optimization',
+                                    desc: 'Proprietary algorithms match you with the highest yielding tasks in real-time.',
+                                    icon: Cpu,
+                                    color: 'bg-primary/20 text-primary-light'
+                                },
+                                {
+                                    title: 'Secure Escrow',
+                                    desc: 'Every transaction is locked in a secure TLS 1.3 container until audit clearance.',
+                                    icon: Lock,
+                                    color: 'bg-accent/20 text-accent'
+                                },
+                                {
+                                    title: 'Tiered Payouts',
+                                    desc: 'Access up to 30 sets of optimized tasks per day with instant settlement.',
+                                    icon: Zap,
+                                    color: 'bg-success/20 text-success'
+                                }
+                            ].map((feat, i) => (
+                                <div key={i} className="reveal-up glass-card-strong p-10 hover:bg-white/5 transition-all duration-700 rounded-[40px] border border-white/5 group hover:border-primary/20 shadow-2xl">
+                                    <div className={`w-16 h-16 rounded-[24px] ${feat.color} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-2xl`}>
+                                        <feat.icon size={32} />
+                                    </div>
+                                    <h4 className="text-2xl font-black uppercase tracking-tighter mb-4">{feat.title}</h4>
+                                    <p className="text-text-secondary leading-relaxed font-medium opacity-60">
+                                        {feat.desc}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Footer */}
+                <footer className="px-6 pt-32 pb-12 relative border-t border-white/5 bg-black/20">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+                            <div className="col-span-1 md:col-span-1 space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                        <DollarSign className="text-white" size={16} />
+                                    </div>
+                                    <span className="text-lg font-black uppercase tracking-tighter">Simple Money</span>
+                                </div>
+                                <p className="text-text-secondary text-xs font-medium leading-relaxed opacity-60 max-w-xs">
+                                    The industry standard for task optimization and commission settlement. Trusted by over 100,000 users globally.
                                 </p>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
-            {/* Footer */}
-            <footer className="px-6 pt-32 pb-12 relative border-t border-white/5 bg-black/20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-                        <div className="col-span-1 md:col-span-1 space-y-6">
+                            {[
+                                {
+                                    title: 'Company',
+                                    links: ['About Us', 'Careers', 'Contact'],
+                                    color: 'bg-primary'
+                                },
+                                {
+                                    title: 'Legal',
+                                    links: ['Terms of Use', 'Privacy Policy', 'Audit Logs'],
+                                    color: 'bg-success'
+                                },
+                                {
+                                    title: 'Connect',
+                                    links: ['Twitter / X', 'Telegram', 'Support'],
+                                    color: 'bg-accent'
+                                }
+                            ].map((col, i) => (
+                                <div key={i} className="space-y-6">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${col.color} animate-pulse`} />
+                                        <h5 className="text-[10px] font-black uppercase tracking-[0.2em]">{col.title}</h5>
+                                    </div>
+                                    <ul className="space-y-4">
+                                        {col.links.map((link, j) => (
+                                            <li key={j}>
+                                                <Link href="#" className="text-sm text-text-secondary hover:text-white transition-colors opacity-60 hover:opacity-100 flex items-center gap-2 group">
+                                                    {link} <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-12 border-t border-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                                    <DollarSign className="text-white" size={16} />
-                                </div>
-                                <span className="text-lg font-black uppercase tracking-tighter">Simple Money</span>
+                                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Systems Operational</span>
                             </div>
-                            <p className="text-text-secondary text-xs font-medium leading-relaxed opacity-60 max-w-xs">
-                                The industry standard for task optimization and commission settlement. Trusted by over 100,000 users globally.
+                            <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-30">
+                                &copy; 2026 Simple Money. All rights reserved.
                             </p>
-                        </div>
-
-                        {[
-                            {
-                                title: 'Company',
-                                links: ['About Us', 'Careers', 'Contact'],
-                                color: 'bg-primary'
-                            },
-                            {
-                                title: 'Legal',
-                                links: ['Terms of Use', 'Privacy Policy', 'Audit Logs'],
-                                color: 'bg-success'
-                            },
-                            {
-                                title: 'Connect',
-                                links: ['Twitter / X', 'Telegram', 'Support'],
-                                color: 'bg-accent'
-                            }
-                        ].map((col, i) => (
-                            <div key={i} className="space-y-6">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${col.color} animate-pulse`} />
-                                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em]">{col.title}</h5>
-                                </div>
-                                <ul className="space-y-4">
-                                    {col.links.map((link, j) => (
-                                        <li key={j}>
-                                            <Link href="#" className="text-sm text-text-secondary hover:text-white transition-colors opacity-60 hover:opacity-100 flex items-center gap-2 group">
-                                                {link} <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="flex items-center gap-6 text-white/20">
+                                <Github size={18} className="hover:text-white transition-colors" />
+                                <Twitter size={18} className="hover:text-white transition-colors" />
                             </div>
-                        ))}
-                    </div>
-
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-12 border-t border-white/5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Systems Operational</span>
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-30">
-                            &copy; 2026 Simple Money. All rights reserved.
-                        </p>
-                        <div className="flex items-center gap-6 text-white/20">
-                            <Github size={18} className="hover:text-white transition-colors" />
-                            <Twitter size={18} className="hover:text-white transition-colors" />
                         </div>
                     </div>
-                </div>
-            </footer>
-        </div>
+                </footer>
+            </div>
+        </AnimatePage>
     );
 }
