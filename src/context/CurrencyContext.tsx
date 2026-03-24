@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import { useSiteSettings } from './SettingsContext';
 import { supabase } from '@/lib/supabase';
 
-export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'CHF' | 'AUD' | 'SGD' | 'AED' | 'ZAR' | 'BRL' | 'GHC' | 'BTC';
+export type CurrencyCode = 'USD' | 'EUR' | 'KES' | 'GBP' | 'JPY' | 'CAD' | 'CHF' | 'AUD' | 'SGD' | 'AED' | 'ZAR' | 'BRL' | 'GHC' | 'BTC';
 
 interface Currency {
     code: CurrencyCode;
@@ -16,6 +16,7 @@ interface Currency {
 const currencies: Record<CurrencyCode, Currency> = {
     USD: { code: 'USD', symbol: '$', rate: 1 },
     EUR: { code: 'EUR', symbol: '€', rate: 0.92 },
+    KES: { code: 'KES', symbol: '€', rate: 130 },    
     GBP: { code: 'GBP', symbol: '£', rate: 0.79 },
     JPY: { code: 'JPY', symbol: '¥', rate: 150.5 },
     CAD: { code: 'CAD', symbol: '$', rate: 1.35 },
