@@ -198,7 +198,7 @@ export default function LandingPage() {
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                                 <DollarSign className="text-white" size={20} />
                             </div>
-                            <span className="text-xl font-black uppercase tracking-tighter">Simple Money</span>
+                            <span className="text-xl font-black uppercase tracking-tighter">Cirqle</span>
                         </div>
 
                         <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
@@ -473,7 +473,7 @@ export default function LandingPage() {
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-16 md:mb-20 space-y-4">
                             <h2 className="reveal-up text-xs font-black uppercase tracking-[0.4em] text-cyan-400">Platform Features</h2>
-                            <h3 className="reveal-up text-3xl md:text-5xl font-black tracking-tighter">Why Choose Simple Money</h3>
+                            <h3 className="reveal-up text-3xl md:text-5xl font-black tracking-tighter">Why Choose Cirqle</h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -615,7 +615,7 @@ export default function LandingPage() {
                                     name: 'David L.',
                                     level: 'LV6 Member',
                                     earnings: '$15,000/month',
-                                    quote: "Simple Money changed my financial situation completely. The daily salary bonus alone covers my bills. Highly recommend to anyone serious about earning.",
+                                    quote: "Cirqle changed my financial situation completely. The daily salary bonus alone covers my bills. Highly recommend to anyone serious about earning.",
                                     avatar: 'D'
                                 }
                             ].map((testimonial, i) => (
@@ -657,7 +657,7 @@ export default function LandingPage() {
                                     Ready to Start Earning?
                                 </h2>
                                 <p className="text-white/60 text-lg mb-10 max-w-2xl mx-auto">
-                                    Join over 124,000 members who are already earning daily commissions with Simple Money. 
+                                    Join over 124,000 members who are already earning daily commissions with Cirqle. 
                                     Your financial freedom starts with one click.
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -688,7 +688,7 @@ export default function LandingPage() {
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
                                         <DollarSign className="text-black" size={20} />
                                     </div>
-                                    <span className="text-xl font-black uppercase tracking-tighter">Simple Money</span>
+                                    <span className="text-xl font-black uppercase tracking-tighter">Cirqle</span>
                                 </div>
                                 <p className="text-white/40 text-sm leading-relaxed max-w-xs">
                                     The trusted platform for task-based earnings. Join thousands of members earning daily commissions.
@@ -745,7 +745,7 @@ export default function LandingPage() {
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Systems Operational</span>
                             </div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-white/30">
-                                &copy; 2026 Simple Money. All rights reserved.
+                                &copy; 2026 Cirqle. All rights reserved.
                             </p>
                             <div className="flex items-center gap-6 text-white/20">
                                 <Twitter size={18} className="hover:text-emerald-400 transition-colors cursor-pointer" />
