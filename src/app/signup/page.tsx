@@ -212,10 +212,10 @@ function OldSignupPage() {
                             <DollarSign className="w-8 h-8 text-white" />
                         </div>
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-light to-accent-light bg-clip-text text-transparent">
-                            Simple Money
+                            Cirqle
                         </h1>
                         <p className="text-text-secondary mt-2 text-xs uppercase tracking-widest font-bold opacity-70">
-                            Join Simple Money
+                            Join Cirqle
                         </p>
                     </div>
                     {magicSent ? (
@@ -486,7 +486,7 @@ function OldSignupPage() {
                 </div>
 
                 <p className="text-center text-text-secondary/30 text-[10px] mt-8 font-bold uppercase tracking-[0.3em]">
-                    © 2026 Simple Money. Secure Protocol.
+                    © 2026 Cirqle. Secure Protocol.
                 </p>
             </div>
         </div>
