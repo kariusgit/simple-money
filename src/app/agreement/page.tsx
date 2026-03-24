@@ -34,7 +34,7 @@ export default function AgreementPage() {
                 <div className="space-y-4 text-center md:text-left">
                     <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">Terms of Neural Participation</h2>
                     <p className="text-xs font-bold text-text-secondary uppercase tracking-widest leading-relaxed opacity-80 max-w-xl">
-                        Welcome to the <span className="text-primary-light">Simple Money Global Node Network</span>. By accessing our decentralized optimization services, you agree to adhere to the following operational protocols.
+                        Welcome to the <span className="text-primary-light">Cirqle Global Node Network</span>. By accessing our decentralized optimization services, you agree to adhere to the following operational protocols.
                     </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-4">
                         <div className="flex items-center gap-2">
