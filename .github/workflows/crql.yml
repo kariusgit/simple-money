@@ -13,8 +13,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # ✅ Correct way to install Supabase CLI
       - name: Install Supabase CLI
-        run: npm install -g supabase
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
       - name: Login to Supabase
         run: supabase login --token $SUPABASE_ACCESS_TOKEN
