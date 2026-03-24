@@ -207,7 +207,7 @@ export default function LoginPage() {
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mb-4">
                                 <DollarSign className="w-8 h-8 text-white" />
                             </div>
-                            <h1 className="text-2xl font-bold text-white">Simple Money</h1>
+                            <h1 className="text-2xl font-bold text-white">Cirqle</h1>
                             <p className="text-text-secondary mt-2 text-xs uppercase tracking-widest font-bold opacity-70">
                                 {mode === 'login' ? 'Welcome back' : 'Reset password'}
                             </p>
