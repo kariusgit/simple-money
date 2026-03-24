@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
 
                 <div className="space-y-6 text-sm text-text-secondary leading-relaxed font-medium">
                     <p>
-                        Welcome to the <strong className="text-text-primary">Simple Money Promotion Platform</strong> and its Services!
+                        Welcome to the <strong className="text-text-primary">Cirqle Promotion Platform</strong> and its Services!
                     </p>
                     <p>
                         To ensure the security of your personal information and the smooth operation of our services, please read these terms carefully. By using this website, you confirm that you are at least 18 years old and agree to these terms. If you do not agree, you may not download, install software, or use our services.
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
                         <h3 className="text-primary-light font-bold text-base border-b border-text-primary/10 pb-1">Security & Compliance</h3>
                         <div className="space-y-2">
                             <p>
-                                Simple Money adopts Tether Limited’s terms of service and utilizes Tether ETH, BTC, and TRC blockchain technologies to meet international compliance standards. Through decentralized blockchain technology, we ensure transparency, traceability, and world-class security. Every user deposit is protected by a blockchain smart contract. Simple Money and our global partners automatically deposit 50% of the user's funds as collateral. If an order cannot be fulfilled due to platform or global partner issues, the smart contract will release the collateral to compensate the user, ensuring fund security.
+                                Cirqle adopts Tether Limited’s terms of service and utilizes Tether ETH, BTC, and TRC blockchain technologies to meet international compliance standards. Through decentralized blockchain technology, we ensure transparency, traceability, and world-class security. Every user deposit is protected by a blockchain smart contract. Cirqle and our global partners automatically deposit 50% of the user's funds as collateral. If an order cannot be fulfilled due to platform or global partner issues, the smart contract will release the collateral to compensate the user, ensuring fund security.
                             </p>
                         </div>
                     </section>
@@ -48,7 +48,7 @@ export default function PrivacyPolicyPage() {
                         <h3 className="text-primary-light font-bold text-base border-b border-text-primary/10 pb-1">Reporting Misconduct</h3>
                         <div className="space-y-2">
                             <p>
-                                Simple Money strictly prohibits official employees and contractors from performing maintenance outside the platform. Each employee is permitted only one work account; multiple accounts for work are strictly forbidden. If you discover such behavior, please report it via email with images and text description. Verified reports will receive generous rewards.
+                                Cirqle strictly prohibits official employees and contractors from performing maintenance outside the platform. Each employee is permitted only one work account; multiple accounts for work are strictly forbidden. If you discover such behavior, please report it via email with images and text description. Verified reports will receive generous rewards.
                             </p>
                         </div>
                     </section>
@@ -182,8 +182,8 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <div className="pt-6 mt-6 border-t border-text-primary/10 text-center font-bold text-primary-light">
-                        Thank you for using Simple Money. Following the above terms will ensure a secure and efficient experience on our platform. If you have any questions or need assistance, please contact our Concierge Desk.
-                        <div className="text-xs text-text-secondary mt-2 opacity-50">© Simple Money All Rights Reserved</div>
+                        Thank you for using Cirqle. Following the above terms will ensure a secure and efficient experience on our platform. If you have any questions or need assistance, please contact our Concierge Desk.
+                        <div className="text-xs text-text-secondary mt-2 opacity-50">© Cirqle All Rights Reserved</div>
                     </div>
                 </div>
             </div>
