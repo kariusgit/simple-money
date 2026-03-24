@@ -1,4 +1,4 @@
-name: crql
+name: supabase
 
 on:
   push:
