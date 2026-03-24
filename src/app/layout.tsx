@@ -11,8 +11,8 @@ import ScrollToTop from '@/components/ScrollToTop';
 import DraggableChat from '@/components/DraggableChat';
 
 export const metadata: Metadata = {
-    title: 'Simple Money - Making Everything Simple',
-    description: 'Simple Money platform - making everything simple and giving you a better technological experience',
+    title: 'Cirqle - Making Everything Simple',
+    description: 'Cirqle platform - making everything simple and giving you a better technological experience',
 };
 
 export default function RootLayout({
