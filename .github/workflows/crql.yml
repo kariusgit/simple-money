@@ -10,23 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout your repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Install Supabase CLI (official way)
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
+      # 3. Authenticate with Supabase
       - name: Login to Supabase
-        run: supabase login --token $SUPABASE_ACCESS_TOKEN
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase login --token "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
 
-      - name: Link project
-        run: supabase link --project-ref $SUPABASE_PROJECT_REF
-        env:
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      # 4. Link to your Supabase project
+      - name: Link Supabase project
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
 
-      - name: Push migrations
+      # 5. Push all migrations to database
+      - name: Deploy database migrations
         run: supabase db push --include-all
